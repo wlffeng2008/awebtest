@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>动态缩放页面</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+
+        background-image: url("bg.webp");
+        /* background-image: url("back.png"); */
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+        min-height: 100vh;
+        min-width: 100vw;
+        margin: 0;
+
+        /* ========== 禁止文字选中 核心代码 ========== */
+        -webkit-user-select: none;
+        /* Chrome / Safari / Edge */
+        -moz-user-select: none;
+        /* Firefox */
+        -ms-user-select: none;
+        /* IE */
+        user-select: none;
+        /*background: #ca1629;  工业深色背景 */
+      }
+      /* 组态画布：设计尺寸，所有元件定位基于这个画布 */
+      #canvas {
+        position: absolute;
+        width: 1920px;
+        height: 1080px;
+        left: 0;
+        top: 0;
+        background: transparent;
+      }
+      /* 组态元件示例：指示灯、按钮、文本、图片 */
+      .light {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #333;
+        position: absolute;
+      }
+      .light.on {
+        background: #00ff66;
+        box-shadow: 0 0 16px #00ff66;
+      }
+      button {
+        width: 190px;
+        height: 50px;
+        position: absolute;
+        font-size: 20px;
+        border-radius: 8px;
+        border: 1px solid gray;
+
+        background: #00000080;
+        color: white;
+        cursor: pointer;
+      }
+      .label-text {
+        position: absolute;
+        font-size: 32px;
+        color: #fff;
+      }
+
+      .larger-text {
+        position: absolute;
+        font-size: 72px;
+        color: #ff0;
+        cursor: pointer;
+      }
+
+      .glass {
+        /* 半透底色，深色组态推荐 rgba(xxx) */
+        background: rgba(255, 255, 255, 0.08);
+        /* 关键磨砂 */
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        /* 提升质感：细亮边框 */
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+      }
+
+      .righrframe {
+        position: absolute;
+        height: 1080px;
+        width: 600px;
+        right: 0px;
+        top: 0;
+        border-radius: 12px;
+        background: #00ff661a;
+        color: wheat;
+        cursor: pointer;
+      }
+      .righrframe button {
+        position: static;
+        font-size: 16px;
+        padding: 0;
+        margin: 5px;
+        min-width: 120px;
+        width: auto;
+        height: 40px;
+      }
+
+      .img-item {
+        position: absolute;
+        width: 300px;
+        cursor: pointer;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas">
+      <!-- 所有组态元件，全部绝对定位，坐标参考1920*1080画布 -->
+      <div class="light on" style="left: 200px; top: 150px" id="light"></div>
+      <div class="label-text" style="left: 260px; top: 150px">运行</div>
+
+      <button class="btn" style="left: 200px; top: 250px" onclick="setFlag()">
+        启动
+      </button>
+
+      <img
+        class="img-item"
+        src="mouse.webp"
+        style="left: 600px; top: 200px"
+        alt="mouse"
+        ;
+        onclick="showAlert('你好，我是一个鼠标！')"
+        id="mouseimage"
+      />
+
+      <img
+        class="img-item"
+        src="akkologo.png"
+        style="left: 20px; top: 20px; width: 180px; height: 60px"
+        alt="mouse"
+        ;
+        onclick="showAlert('你好，我是AKKO形象代言人！')"
+      />
+
+      <button
+        class="btn"
+        style="left: 700px; top: 850px"
+        onclick="changeMouse()"
+      >
+        切换设备
+      </button>
+
+      <div class="label-text" style="left: 200px; top: 400px">压力：0.8MPa</div>
+
+      <div
+        class="larger-text"
+        style="left: 200px; top: 500px"
+        onclick="
+          showAlert(
+            '鼠标必须保留一个按键有左键功能！否则鼠标无法正常使用，后果很严重！',
+            (res) => {
+              console.log(res);
+            },
+          )
+        "
+      >
+        深圳AKKO
+      </div>
+
+      <div class="righrframe glass">
+        <div style="background-color: #00ff661a; padding: 0; margin: 0">
+          <button>呵呵00</button>
+          <button>呵呵01</button>
+          <button>呵呵01</button>
+          <button>呵呵01</button>
+          <button style="left: 20px; top: 10x">呵呵</button>
+          <button style="left: 100px; top: 200x">123</button>
+          <button style="left: 100px; top: 300x">AKKO大本营0</button>
+          <button style="left: 100px; top: 400x">AKKO大本营2</button>
+          <hr style="background-color: #e6250b; height: 10px; border: none" />
+          <button style="left: 20px; top: 10x">呵呵qww</button>
+          <button style="left: 100px; top: 200x">123456</button>
+          <button style="left: 100px; top: 300x">AKKO大本营02</button>
+          <button style="left: 100px; top: 400x">AKKO大本营25</button>
+          <button id="btnMouse">打开鼠标设置</button>
+          <button id="btnSound">打开声音设置</button>
+          <hr />
+          <button><a href="ms-settings:mouse">打开鼠标设置</a></button>
+          <a href="ms-settings:network">网络设置</a>
+        </div>
+
+        <h3>中央人民广播电台</h3>
+        <h5>中华人民共和国国籍法</h5>
+        <h6>中央人民广播电台</h6>
+      </div>
+    </div>
+
+    <script>
+      document.querySelector("#btnMouse").onclick = () => {
+        location.href = "ms-settings:mousetouchpad";
+      };
+      document.querySelector("#btnSound").onclick = () => {
+        location.href = "ms-settings:sound";
+      };
+
+      let onflag = true;
+      function setFlag() {
+        onflag = !onflag;
+        const light = document.getElementById("light");
+        light.classList.toggle("on");
+      }
+
+      let imageIndex = 0;
+      function changeMouse() {
+        let mouses = ["mouse.webp", "mouse0.png", "mouse1.png", "mouse2.png"];
+        const image = document.getElementById("mouseimage");
+        image.src = mouses[++imageIndex % 4];
+      }
+      // function showAlert(msg) {
+      //   const e = document.createElement("div");
+      //   e.style.position = "fixed";
+      //   e.style.inset = "0";
+      //   e.style.background = "rgba(0,0,0,.45)";
+      //   e.style.display = "flex";
+      //   e.style.alignItems = "center";
+      //   e.style.justifyContent = "center";
+      //   e.style.zIndex = "9999";
+      //   e.innerHTML = `<div style="min-width:400px;background:#ffffff9c;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.75);">
+      // <div style="padding:24px;font-size:15px;color:#333;line-height:1.6;">${msg}</div>
+      // <div style="text-align:right;padding:12px 24px;background:#f7f8fa9c;border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+      // <button style="padding:8px 20px; border:none;border-radius:6px;background:#4080ff;color:#fff;font-size:16px; height:40px;cursor:pointer;position: relative;">确定</button></div></div>`;
+      //   document.body.appendChild(e);
+      //   const t = e.querySelector("button");
+      //   t.onclick = () => e.remove();
+      //   e.onclick = (t) => t.target === e && e.remove();
+      // }
+
+      function showAlert(msg, callback = null) {
+        let optionBtn = "";
+        if (callback) {
+          optionBtn = `<button id="button_no" style="padding:8px 20px; border:none;border-radius:6px;background:#404040;color:#fff;font-size:16px; height:40px;cursor:pointer;width:150px;position: relative;">取消</button>`;
+        }
+
+        const e = document.createElement("div");
+        e.style.position = "fixed";
+        e.style.inset = "0";
+        e.style.background = "rgba(0,0,0,.45)";
+        e.style.display = "flex";
+        e.style.alignItems = "center";
+        e.style.justifyContent = "center";
+        e.style.zIndex = "9999";
+        //e.style.webkitBackdropFilter = "blur(2px)"; // 可选：背景磨砂，和你组态风格统一
+
+        e.innerHTML = `
+                <div style="min-width:400px;background:#ffffff9c;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.75);">
+                    <div style="padding:24px;font-size:15px;color:#333;line-height:1.6;">${msg}</div>
+                      <div style="text-align:right;padding:12px 24px;background:#f7f8fa9c;border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; display: flex; justify-content:center;gap:20px;">
+                          <button id="button_ok" style="padding:8px 20px; border:none;border-radius:6px;background:#4080ff;color:#fff;font-size:16px; height:40px;cursor:pointer; width:150px;position: relative;">确定</button>
+                          ${optionBtn}
+                    </div>
+                </div>
+            `;
+        document.body.appendChild(e);
+
+        const t0 = e.querySelector("#button_ok");
+        const t1 = e.querySelector("#button_no");
+
+        if (t0) {
+          t0.onclick = () => {
+            e.remove();
+            if (callback) callback(true);
+          };
+        }
+        if (t1) {
+          t1.onclick = () => {
+            e.remove();
+            if (callback) callback(false);
+          };
+        }
+        // 点击遮罩关闭
+        e.onclick = (ev) => {
+          if (ev.target === e) {
+            e.remove();
+            if (callback) callback(false);
+          }
+        };
+      }
+
+      const canvas = document.getElementById("canvas");
+      // ========== 组态设计画布尺寸，和你绘图时保持一致 ==========
+      const DESIRED_W = 1920;
+      const DESIRED_H = 1080;
+      let scale = 1;
+      let scaleX = 1;
+      let scaleY = 1;
+
+      // 防抖函数
+      function debounce(fn, delay = 20) {
+        let timer;
+        return (...args) => {
+          clearTimeout(timer);
+          timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+      }
+
+      function resizeCanvas() {
+        const winW = window.innerWidth;
+        const winH = window.innerHeight;
+        // contain模式：完整显示画面，不变形
+        scaleX = winW / DESIRED_W;
+        scaleY = winH / DESIRED_H;
+        scale = Math.min(scaleX, scaleY);
+
+        canvas.style.transform = `scale(${scale})`;
+        canvas.style.transformOrigin = "left top";
+
+        // 居中：让画布缩放后在窗口居中
+        const offsetX = (winW - DESIRED_W * scale) / 2;
+        const offsetY = (winH - DESIRED_H * scale) / 2;
+        //canvas.style.left = offsetX + "px";
+        //canvas.style.top = offsetY + "px";
+        
+        canvas.style.left = "0px";
+        canvas.style.top = "0px";
+      }
+
+      // 【重点】鼠标坐标转换：屏幕坐标 → 画布内原始坐标（做拖拽、点击拾取元件必备）
+      function getCanvasPoint(e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / scale;
+        const y = (e.clientY - rect.top) / scale;
+        return { x, y };
+      }
+
+      // 测试点击，打印画布内部坐标
+      canvas.addEventListener("click", (e) => {
+        const pt = getCanvasPoint(e);
+        console.log("画布坐标 X:", pt.x.toFixed(2), " Y:", pt.y.toFixed(2));
+      });
+
+      resizeCanvas();
+      window.addEventListener("resize", debounce(resizeCanvas));
+    </script>
+  </body>
+</html>

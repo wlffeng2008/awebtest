@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+      :root {
+        --bg: #f4f7fa;
+        --panel: rgba(255, 200, 255, 0.2);
+        --text: #222;
+        --flag: #ff0000cc;
+        --gap: 10px;
+        --btnbg: #cec;
+        --bkimg: url(back.png);
+      }
+      body.theme-dark {
+        --bg: #111827;
+        --panel: rgba(30, 41, 159, 0.55);
+        --text: #eee;
+        --flag: #00ff00cc;
+        --gap: 40px;
+        --btnbg: #ccc;
+        --bkimg: url(bg.webp);
+      }
+    html,
+    body,
+    #root {
+      
+      width: 100%;
+      height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        transition: 0.25s ease all; /* 平滑过渡 */
+
+        background-image: var(--bkimg);
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        background-position: center;
+
+
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        /*background: #ca1629;  工业深色背景 */
+      }
+      .box {
+        width: 800px;
+        height: 600px;
+        background: var(--panel);
+        /* -webkit-backdrop-filter: blur(10px); */
+        border-radius: 12px;
+        margin-left: 100px;
+        padding-left: 20px;
+      }
+      .mybox {
+        background: var(--flag);
+        border-radius: 12px;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        justify-items: center;
+        align-items: center;
+        color: #0f0;
+        font: 2em sans-serif;
+      }
+      button {
+        height: 50px;
+        width: 150px;
+        border-radius: 12px;
+        font: 1em MicrosoftYahei;
+        background: var(--btnbg);
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div style="height: 60px; margin: 10px;">
+      <button id="switch">切换深色/浅色</button>
+      <button id="langBtn" data-i18n="switchLang">1</button>
+    </div>
+    <div class="box">
+      <span data-i18n="maintitle" style="font-size: 32px;"> </span>
+      <div style="display: flex; gap: var(--gap)">
+        <div class="mybox">1</div>
+        <div class="mybox">2</div>
+        <div class="mybox">4</div>
+        <div class="mybox">8</div>
+      </div>
+
+      <h3 data-i18n="home"></h3>
+      <p data-i18n="homeTip"></p>
+      <p data-i18n="homeTip"></p>
+      <p data-i18n="homeTip"></p>
+      <p style="font-size: 36px; color: blueviolet">天涯海角</p>
+    </div>
+
+    <div style="margin-top: 20px;height: 40px;background-color: rgb(168, 112, 168);">
+      <div></div>
+    </div>
+
+    <script>
+      let t = localStorage.getItem("theme") || "light";
+      function apply(th) {
+        document.body.classList.toggle("theme-dark", th === "dark");
+        localStorage.theme = th;
+      }
+      apply(t);
+      document.getElementById("switch").onclick = () => {
+        t = t === "light" ? "dark" : "light";
+        apply(t);
+      };
+
+      const langPack = {
+        zh: {
+          home: "主页", 
+          homeTip: "这是主页面板", 
+          switchLang: "切换语言",
+          maintitle:"磨砂面板测试",
+         },
+        en: {
+          home: "Home",
+          homeTip: "This is home panel",
+          switchLang: "Switch Lang",
+          maintitle:"Super Test",
+        },
+      };
+
+      let currentLang = localStorage.getItem("lang") || "zh";
+      function renderI18n(lang) {
+        const p = langPack[lang];
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const k = el.dataset.i18n;
+          el.innerText = p[k] ?? k;
+        });
+        localStorage.lang = lang;
+        currentLang = lang;
+      }
+      renderI18n(currentLang);
+      document.getElementById("langBtn").onclick = () => {
+        renderI18n(currentLang === "zh" ? "en" : "zh");
+      };
+    </script>
+  </body>
+</html>

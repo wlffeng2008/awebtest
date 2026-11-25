@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .wrap {
+        background: #1e1e1e;
+        padding: 20px;
+        color: #fff;
+        font-family: system-ui;
+      }
+
+      /* 右上角开关行 */
+      .row-top {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .row-top .text {
+        font-size: 20px;
+        color: #fff;
+      }
+
+      /* 自定义toggle开关（你前面的开关样式） */
+      .toggleDPI {
+        position: relative;
+        width: 64px;
+        height: 28px;
+      }
+      .toggleDPI input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #666;
+        border-radius: 32px;
+        transition: 0.2s;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 24px;
+        width: 24px;
+        top: 2px;
+        left: 1px;
+        bottom: 1px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.2s;
+      }
+      .toggleDPI input:checked + .toggle-slider {
+        background: #13ce66;
+      }
+      .toggleDPI input:checked + .toggle-slider:before {
+        transform: translateX(36px);
+      }
+
+      /* DPI快捷按钮容器 */
+      .dpiPresetWrap {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      /* DPI预设项：圆形色块 + 文字 */
+      .dpiItem {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+      }
+      .dpiColorCircle {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+      }
+      /* 选中态：蓝色外框 */
+      .dpiItem.active .dpiColorCircle {
+        border-color: #0088ff;
+      }
+      .dpiValueText {
+        font-size: 16px;
+        color: #fff;
+      }
+
+      /* 滑块区域 */
+      .sliderRow {
+        width: 100%;
+      }
+
+      .dpiSlider {
+        width: 100%;
+        height: 12px;
+        margin: 20px 0;
+        cursor: pointer;
+        -webkit-appearance: none; /* 必须，清除原生样式才能自定义 */
+        background: transparent;
+      }
+      /* 轨道样式 */
+      .dpiSlider::-webkit-slider-runnable-track {
+        height: 12px;
+        background: #333862; /* 轨道底色 */
+        border-radius: 6px;
+      }
+      /* 滑块小圆点 */
+      .dpiSlider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        margin-top: -4px; /* 垂直居中对齐轨道 */
+        background: #13ce66;
+        border-radius: 50%;
+        border: none;
+      }
+      /* 滑块hover效果 */
+      .dpiSlider::-webkit-slider-thumb:hover {
+        background: #36d37f;
+      }
+
+      /* 底部文字：左右两端文字 */
+      .sliderLabelRow {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+        color: #fff;
+      }
+      /* 右侧DPI数值输入框 */
+      .dpiInputBox {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+        position: relative;
+        top: -30px;
+      }
+      .dpiInputBox input {
+        width: 90px;
+        border-radius: 6px;
+        font-size: 16px;
+        background: #1e1e1e;
+        color: #0ff;
+        border: 2px solid #fff;
+        text-align: center;
+        padding: 4px;
+      }
+      .dpiInputBox span {
+        font-size: 16px;
+      }
+
+
+.lightPanel{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+.title{
+    font-size:22px;
+    margin-bottom:8px;
+}
+/* 单选行容器 */
+.radioRow{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    margin-bottom: 30px;
+}
+.radioLabel{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:16px;
+    cursor:pointer;
+}
+/* 自定义radio圆圈 */
+.radioLabel input[type="radio"]{
+    appearance:none;
+    width:18px;
+    height:18px;
+    border:2px solid #888;
+    border-radius:50%;
+    position:relative;
+}
+.radioLabel input[type="radio"]:checked{
+    border-color:#9955dd;
+}
+.radioLabel input[type="radio"]:checked::after{
+    content:"";
+    position:absolute;
+    width:8px;
+    height:8px;
+    background:#9955dd;
+    border-radius:50%;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+}
+
+/* 亮度滑块区域 */
+.brightWrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.brightSlider{
+    flex:1;
+    height:12px;
+    width: 100%;
+    -webkit-appearance:none;
+    background:transparent;
+    cursor:pointer;
+}
+.brightSlider::-webkit-slider-runnable-track{
+    height:12px;
+    border-radius:6px;
+    background:linear-gradient(to right,#9955dd 100%,#444 100%);
+}
+.brightSlider::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background:#fff;
+    border:2px solid #9955dd;
+    margin-top:-4px;
+}
+.brightNumBox{
+    display:flex;
+    align-items:center;
+    border:1px solid #777;
+    border-radius:4px;
+}
+.brightNumBox button{
+    width:28px;
+    height:28px;
+    background:#333;
+    border:none;
+    font-size:18px;
+    cursor:pointer;
+}
+.brightNumBox input{
+    width:44px;
+    height:28px;
+    text-align:center;
+    background:#222;
+    border:none;
+    font-size:16px;
+}
+
+/* 颜色区域容器 */
+.colorArea{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+}
+.presetWrap{
+    flex:1;
+}
+.presetRectRow{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+}
+.rectColorBtn{
+    width:70px;
+    height:44px;
+    border-radius:6px;
+    border:2px solid transparent;
+    cursor:pointer;
+    font-size:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.rectColorBtn.active{
+    border-color:#fff;
+}
+.presetCircleRow{
+    display:grid;
+    grid-template-columns:repeat(5, 60px);
+    gap:14px;
+}
+.circleColorBtn{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:2px solid transparent;
+    cursor:pointer;
+}
+.circleColorBtn.active{
+    border-color:#fff;
+}
+
+/* 右侧HSV取色板 */
+.colorPicker{
+    width:420px;
+    height:320px;
+    background:linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red);
+    position:relative;
+    border-radius:8px;
+    overflow:hidden;
+}
+.colorPicker::after{
+    content:"";
+    position:absolute;
+    inset:0;
+     background:linear-gradient(0deg, #000 0%, transparent 50%, #fff 100%); 
+}
+
+.colorPicker{
+    width:420px;
+    height:320px;
+    position:relative;
+    border-radius:8px;
+    overflow:hidden;
+    cursor:crosshair;
+}
+/* 底层：色相 */
+.colorPicker .hsvHue{
+    width:100%;
+    height:100%;
+    background:linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red);
+}
+/* 上层：饱和度遮罩：从上到下：透明 → 白色 */
+.colorPicker .hsvSat{
+    width:100%;
+    height:100%;
+    position:absolute;
+    top:0;
+    left:0;
+    /* 顶部：完全透明（饱和最高）；底部纯白（饱和度0） */
+    background:linear-gradient(100deg, transparent 0%, 0 100%);
+}
+
+/* 拾取标记圆点 */
+.colorPicker .pickerDot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    border:1px solid #fff;
+    position:absolute;
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+}
+/* 底部明度条（Value） */
+.valueBar{
+    width:420px;
+    height:24px;
+    margin-top:8px;
+    background:linear-gradient(90deg, #000, #fff);
+    border-radius:4px;
+    cursor:crosshair;
+    position:relative;
+}
+.valueBar .vDot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    border:1px solid #fff;
+    position:absolute;
+    top:50%;
+    pointer-events:none;
+    transform:translate(-50%,-50%);
+}
+
+
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <!-- 右上角 X/Y独立设定 -->
+      <div class="row-top">
+        <span class="text">X轴/Y轴独立设定</span>
+        <label class="toggleDPI">
+          <input type="checkbox" id="toggleDPI" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div id="frameDpiX">
+        <div class="title">X轴DPI设置</div>
+        <div class="dpiPresetWrap" id="dpiPresetWrapX"></div>
+
+        <!-- 滑块+数值 -->
+        <div class="sliderRow">
+          <div style="display: flex; backgound-color: green; gap: 10px">
+            <div style="width: 100%">
+              <input
+                type="range"
+                id="dpiSliderX"
+                class="dpiSlider"
+                min="50"
+                max="42000"
+                value="6400"
+              />
+
+              <div class="sliderLabelRow">
+                <span>50 DPI</span>
+                <span>42000 DPI</span>
+              </div>
+            </div>
+
+            <div class="dpiInputBox">
+              <input type="text" id="dpiNumInputX" value="6400" />
+              <span>DPI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="frameDpiY" style="display: none">
+        <div class="title">Y轴DPI设置</div>
+        <div class="dpiPresetWrap" id="dpiPresetWrapY"></div>
+
+        <!-- 滑块+数值 -->
+        <div class="sliderRow">
+          <div style="display: flex; backgound-color: green; gap: 10px">
+            <div style="width: 100%">
+              <input
+                type="range"
+                id="dpiSliderY"
+                class="dpiSlider"
+                min="50"
+                max="42000"
+                value="6400"
+              />
+
+              <div class="sliderLabelRow">
+                <span>50 DPI</span>
+                <span>42000 DPI</span>
+              </div>
+            </div>
+
+            <div class="dpiInputBox">
+              <input type="text" id="dpiNumInputY" value="6400" />
+              <span>DPI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+    
+    <div>
+        <div class="title">灯光设置</div>
+        <div class="radioRow">
+            <span>灯光效果</span>
+            <label class="radioLabel">
+                <input type="radio" name="lightMode" value="off"> 关闭
+            </label>
+            <label class="radioLabel">
+                <input type="radio" name="lightMode" value="static"> 常亮
+            </label>
+            <label class="radioLabel">
+                <input type="radio" name="lightMode" value="breath" checked> 呼吸
+            </label>
+        </div>
+    </div>
+
+    <div class="radioRow">
+        <span>呼吸速度</span>
+        <label class="radioLabel">
+            <input type="radio" name="breathSpeed" value="5">5X
+        </label>
+        <label class="radioLabel">
+            <input type="radio" name="breathSpeed" value="4">4X
+        </label>
+        <label class="radioLabel">
+            <input type="radio" name="breathSpeed" value="3" checked>3X
+        </label>
+        <label class="radioLabel">
+            <input type="radio" name="breathSpeed" value="2">2X
+        </label>
+        <label class="radioLabel">
+            <input type="radio" name="breathSpeed" value="1">1X
+        </label>
+    </div>
+
+    <div class="radioRow">
+        <div style="margin-bottom:8px;">灯光亮度</div>
+        <div class="brightWrap">
+            <input type="range" class="brightSlider" min="0" max="100" value="100">
+            <div class="brightNumBox">
+                <button id="minusBtn">-</button>
+                <input id="brightInput" value="100">
+                <button id="plusBtn">+</button>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <div style="margin-bottom:10px;">灯光颜色</div>
+        <div class="colorArea">
+            <div class="presetWrap">
+                <div class="presetRectRow">
+                    <button class="rectColorBtn active" style="background:#ff2222">1</button>
+                    <button class="rectColorBtn" style="background:#ff9900">2</button>
+                    <button class="rectColorBtn" style="background:#ffee00">3</button>
+                    <button class="rectColorBtn" style="background:#00dd22">4</button>
+                    <button class="rectColorBtn" style="background:#00ddff">5</button>
+                    <button class="rectColorBtn" style="background:#0022ff">6</button>
+                    <button class="rectColorBtn" style="background:#ff00dd">7</button>
+                    <button class="rectColorBtn" style="background:#ffffff">8</button>
+                </div>
+                <div style="text-align:center;margin:8px 0;">预设颜色</div>
+                <div class="presetCircleRow">
+                    <button class="circleColorBtn" style="background:#607828"></button>
+                    <button class="circleColorBtn" style="background:#ffff44"></button>
+                    <button class="circleColorBtn" style="background:#e63921"></button>
+                    <button class="circleColorBtn" style="background:#d82890"></button>
+                    <button class="circleColorBtn" style="background:#3498eb"></button>
+                    <button class="circleColorBtn" style="background:#9977aa"></button>
+                    <button class="circleColorBtn" style="background:#c82880"></button>
+                    <button class="circleColorBtn" style="background:#bdee44"></button>
+                    <button class="circleColorBtn" style="background:#59e845"></button>
+                    <button class="circleColorBtn" style="background:#44dcee"></button>
+                </div>
+            </div>
+            <div class="colorPicker">
+                
+    <div class="hsvHue"></div>
+    <div class="hsvSat"></div>
+    <div class="pickerDot"></div>
+    <!-- 底部明度条 -->
+    <div class="valueBar">
+        <div class="vDot"></div>
+    </div>
+</div>
+        </div>
+    </div>
+    
+    
+    </div>
+
+    
+
+    <script>
+      // 预设DPI数据，【颜色可在这里动态修改】
+      let dpiPresetList = [
+        { color: "#ff2222", valX: 400, valY: 400 },
+        { color: "#ff9900", valX: 800, valY: 800 },
+        { color: "#ffff00", valX: 1200, valY: 1200 },
+        { color: "#00ee22", valX: 1600, valY: 1600 },
+        { color: "#00eef2", valX: 3200, valY: 3200 },
+        { color: "#0022dd", valX: 6400, valY: 6400 },
+        { color: "#ff00dd", valX: 10000, valY: 10000 },
+        { color: "#ffffff", valX: 30000, valY: 32000 },
+      ];
+
+      let currentIndex = 5;
+
+      const wrapX = document.getElementById("dpiPresetWrapX");
+      const sliderX = document.getElementById("dpiSliderX");
+      const numInputX = document.getElementById("dpiNumInputX");
+
+      const wrapY = document.getElementById("dpiPresetWrapY");
+      const sliderY = document.getElementById("dpiSliderY");
+      const numInputY = document.getElementById("dpiNumInputY");
+      const toggleDpi = document.querySelector("#toggleDPI");
+      let doubleFlag = false;
+
+      toggleDpi.addEventListener("change", function () {
+        const state = toggleDpi.checked;
+        doubleFlag = state;
+        console.log("DPI开关切换：", state);
+        let frameY = document.getElementById("frameDpiY");
+        if (state) frameY.style.cssText = `display: block;margin-top: 50px;`;
+        else frameY.style.cssText = `display: none`;
+      });
+
+      // 渲染DPI彩色圆点
+      function renderPresetDpi() {
+        wrapX.innerHTML = "";
+        dpiPresetList.forEach((item, index) => {
+          const div = document.createElement("div");
+          div.className = "dpiItem";
+          div.id = `dpiItem${index}`;
+          div.style.cssText = `width:100px; border:2px solid transparent; border-radius:6px;padding:4px;`;
+          if (currentIndex === index) {
+            div.style.cssText = `width:100px; border: 2px solid ${item.color}; border-radius:6px;padding:4px;`;
+          }
+          div.innerHTML = `
+                <div class="dpiColorCircle"  style="background:${item.color};"></div>
+                <span class="dpiValueText">${item.valX}</span>
+            `;
+          div.onclick = () => {
+            let v = item.valX;
+            sliderX.value = v;
+            numInputX.value = v;
+            currentIndex = index;
+            if (!doubleFlag) {
+              sliderY.value = v;
+              numInputY.value = v;
+            }
+
+            renderPresetDpi();
+          };
+          wrapX.appendChild(div);
+        });
+
+        wrapY.innerHTML = "";
+        dpiPresetList.forEach((item, index) => {
+          const div = document.createElement("div");
+          div.className = "dpiItem";
+          div.id = `dpiItem${index}`;
+          div.style.cssText = `width:100px; border:2px solid transparent; border-radius:6px;padding:4px;`;
+          if (currentIndex === index) {
+            div.style.cssText = `width:100px; border: 2px solid ${item.color}; border-radius:6px;padding:4px;`;
+          }
+          div.innerHTML = `
+            <div class="dpiColorCircle"  style="background:${item.color};"></div>
+            <span class="dpiValueText">${item.valY}</span>
+        `;
+          div.onclick = () => {
+            let v = item.val;
+            sliderY.value = v;
+            numInputY.value = v;
+            currentIndex = index;
+            renderPresetDpi();
+          };
+          wrapY.appendChild(div);
+        });
+
+        sliderX.disabled = false;
+        sliderX.style.pointerEvents = "auto";
+        sliderY.disabled = false;
+        sliderY.style.pointerEvents = "auto";
+      }
+
+      sliderX.addEventListener("input", () => {
+        let v = Math.floor(Number(sliderX.value) / 50) * 50;
+        v = Math.max(50, Math.min(42000, v));
+        numInputX.value = v;
+        dpiPresetList[currentIndex]["valX"] = v;
+        if (!doubleFlag) {
+          sliderY.value = v;
+            numInputY.value = v;
+          dpiPresetList[currentIndex]["valY"] = v;
+        }
+        renderPresetDpi();
+      });
+
+      numInputX.addEventListener("change", () => {
+        let v = Math.floor(Number(numInputX.value) / 50) * 50;
+        v = Math.max(50, Math.min(42000, v));
+        sliderX.value = v;
+        dpiPresetList[currentIndex]["valX"] = v;
+        if (!doubleFlag) {
+          sliderY.value = v;
+            numInputY.value = v;
+          dpiPresetList[currentIndex]["valY"] = v;
+        }
+        renderPresetDpi();
+      });
+
+      sliderY.addEventListener("input", () => {
+        let v = Math.floor(Number(sliderY.value) / 50) * 50;
+        v = Math.max(50, Math.min(42000, v));
+        numInputY.value = v;
+        dpiPresetList[currentIndex]["valY"] = v;
+        renderPresetDpi();
+      });
+
+      numInputY.addEventListener("change", () => {
+        let v = Math.floor(Number(numInputY.value) / 50) * 50;
+        v = Math.max(50, Math.min(42000, v));
+        sliderY.value = v;
+        dpiPresetList[currentIndex]["valY"] = v;
+        renderPresetDpi();
+      });
+
+      // 初始化
+      renderPresetDpi();
+
+
+
+
+
+// 亮度逻辑
+const brightSlider = document.querySelector('.brightSlider');
+const brightInput = document.querySelector('#brightInput');
+const minusBtn = document.querySelector('#minusBtn');
+const plusBtn = document.querySelector('#plusBtn');
+
+function updateBrightUI(val){
+    val = Math.max(0, Math.min(100, Number(val)));
+    brightSlider.value = val;
+    brightInput.value = val;
+    const pct = val/100*100;
+    brightSlider.style.background = `linear-gradient(to right, #9955dd ${pct}%, #444 ${pct}%)`;
+}
+brightSlider.addEventListener('input',()=>{
+    updateBrightUI(brightSlider.value);
+});
+minusBtn.onclick = ()=> updateBrightUI(Number(brightSlider.value)-1);
+plusBtn.onclick = ()=> updateBrightUI(Number(brightSlider.value)+1);
+
+// 预设颜色选中切换
+const colorBtns = [...document.querySelectorAll('.rectColorBtn, .circleColorBtn')];
+colorBtns.forEach(btn=>{
+    btn.onclick = ()=>{
+        colorBtns.forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const selectedColor = getComputedStyle(btn).backgroundColor;
+        console.log("选中灯光颜色：", selectedColor);
+        // 这里可以调用qtBridge，把颜色传给C++
+    }
+})
+
+// 获取灯光模式
+function getLightSetting(){
+    const mode = document.querySelector('input[name="lightMode"]:checked').value;
+    const speed = document.querySelector('input[name="breathSpeed"]:checked').value;
+    const bright = brightSlider.value;
+    return {mode, speed, bright};
+}
+// 读取配置示例
+document.querySelectorAll('input[name="lightMode"],input[name="breathSpeed"]').forEach(radio=>{
+    radio.addEventListener('change',()=>{
+        const cfg = getLightSetting();
+        console.log("灯光配置更新",cfg);
+        // window.qtBridge.setLightConfig(cfg); // 传给Qt C++
+    })
+})
+updateBrightUI(100);
+
+let hsv = {h:0, s:1, v:1};
+const colorPicker = document.querySelector('.colorPicker');
+const pickerDot = document.querySelector('.pickerDot');
+const valueBar = document.querySelector('.valueBar');
+const vDot = document.querySelector('.vDot');
+
+function hsvToRgb(h, s, v) {
+    let r = 0, g = 0, b = 0;
+    if (s === 0) {
+        r = g = b = v;
+    } else {
+        const i = Math.floor(h * 6);
+        const f = h * 6 - i;
+        const p = v * (1 - s);
+        const q = v * (1 - f * s);
+        const t = v * (1 - (1 - f) * s);
+        switch (i % 6) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+    }
+    return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+    };
+}
+
+function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, v = max;
+    const d = max - min;
+    s = max === 0 ? 0 : d / max;
+    if (max === min) {
+        h = 0;
+    } else {
+        switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+        }
+    }
+    return {h, s, v};
+}
+
+function handleColorPick(e) {
+    const x = e.offsetX;
+    const y = e.offsetY;
+    const xClamp = Math.max(0, Math.min(colorPicker.clientWidth, x));
+    const yClamp = Math.max(0, Math.min(colorPicker.clientHeight, y));
+
+    hsv.h = xClamp / colorPicker.clientWidth;
+    hsv.s = 1 - (yClamp / colorPicker.clientHeight);
+
+    updatePickerDot(xClamp, yClamp);
+    outputColor();
+}
+
+colorPicker.addEventListener('mousedown', handleColorPick);
+colorPicker.addEventListener('mousemove', (e) => {
+    if (e.buttons !== 1) return;
+    handleColorPick(e);
+});
+
+function handleValuePick(e) {
+    const x = e.offsetX;
+    const xClamp = Math.max(0, Math.min(valueBar.clientWidth, x));
+    hsv.v = xClamp / valueBar.clientWidth;
+    updateVDot(xClamp);
+    outputColor();
+}
+valueBar.addEventListener('mousedown', handleValuePick);
+valueBar.addEventListener('mousemove', (e) => {
+    if (e.buttons !== 1) return;
+    handleValuePick(e);
+});
+
+function updatePickerDot(x, y) {
+    pickerDot.style.left = `${x}px`;
+    pickerDot.style.top = `${y}px`;
+}
+function updateVDot(x) {
+    vDot.style.left = `${x}px`;
+}
+
+function outputColor() {
+    const rgb = hsvToRgb(hsv.h, hsv.s, hsv.v);
+    const hex = `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`;
+    console.log("HSV: ", {h:hsv.h.toFixed(3), s:hsv.s.toFixed(3), v:hsv.v.toFixed(3)});
+    console.log("RGB: ", rgb, "HEX:", hex);
+    // window.qtBridge.onColorPick(rgb.r, rgb.g, rgb.b);
+}
+
+function setColorFromRGB(r,g,b) {
+    const newHsv = rgbToHsv(r,g,b);
+    hsv.h = newHsv.h;
+    hsv.s = newHsv.s;
+    hsv.v = newHsv.v;
+    const pickX = hsv.h * colorPicker.clientWidth;
+    const pickY = (1 - hsv.s) * colorPicker.clientHeight;
+    updatePickerDot(pickX, pickY);
+    const vX = hsv.v * valueBar.clientWidth;
+    updateVDot(vX);
+    outputColor();
+}
+
+updateVDot(valueBar.clientWidth);
+setColorFromRGB(255,0,0);
+
+
+
+    </script>
+  </body>
+</html>

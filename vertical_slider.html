@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Slider 垂直 / 横向</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #1e1e1e;
+        color: #ccc;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Microsoft YaHei",
+          sans-serif;
+      }
+      #root {
+        width: min(960px, 94vw);
+        background: #2d2d30;
+        border-radius: 12px;
+        padding: 24px 28px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+      }
+      .row {
+        display: flex;
+        gap: 36px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .cap {
+        font-size: 12px;
+        color: #888;
+      }
+      .val {
+        font-size: 13px;
+        color: #ddd;
+        min-width: 72px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+      canvas {
+        display: block;
+        outline: none;
+        touch-action: none;
+      }
+      .tip {
+        font-size: 16px;
+        color: #666;
+        text-align: center;
+      }
+      .btns {
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        background: #3e3e42;
+        color: #ddd;
+        border: 1px solid #555;
+        border-radius: 6px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 24px;
+      }
+      button:hover {
+        background: #4a4a50;
+      }
+      #s1 {
+        width: 156px;
+        height: 240px;
+      }
+      #s2 {
+        width: 64px;
+        height: 320px;
+      }
+      #s3 {
+        width: 156px;
+        height: 240px;
+      }
+      #s4 {
+        width: 100%;
+        height: 64px;
+      }
+      #s5 {
+        width: 100%;
+        height: 64px;
+      }
+      .hwrap {
+        margin-top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="row">
+        <div class="col">
+          <div class="cap">垂直 · 0–100</div>
+          <canvas id="s1" tabindex="0"></canvas>
+          <div class="val" id="v1">–</div>
+        </div>
+        <div class="col">
+          <div class="cap">垂直 · 宽滑块 · 刻度点</div>
+          <canvas id="s2" tabindex="0"></canvas>
+          <div class="val" id="v2">–</div>
+        </div>
+        <div class="col">
+          <div class="cap">垂直 · 角度 -30–30</div>
+          <canvas id="s3" tabindex="0"></canvas>
+          <div class="val" id="v3">–</div>
+        </div>
+      </div>
+
+      <div class="hwrap">
+        <div class="cap">横向 · 0–100（step 10，带刻度）</div>
+        <canvas id="s4" tabindex="0"></canvas>
+        <div class="val" id="v4">–</div>
+      </div>
+      <div class="hwrap">
+        <div class="cap">横向 · -30–30（inverted：左大右小）</div>
+        <canvas id="s5" tabindex="0"></canvas>
+        <div class="val" id="v5">–</div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button id="btnDis">切换禁用(s2)</button>
+      <button id="btnSet">随机设值(s3)</button>
+    </div>
+    <div class="tip">
+      拖动 / 点击轨道跳转 / 滚轮 / ↑↓←→ PgUp/PgDn Home/End（先点一下获得焦点）
+    </div>
+
+    <script>
+      /* ============ 工具 ============ */
+      function normalizeWheel(e) {
+        const LINE = 16,
+          PAGE = 400;
+        let dx = e.deltaX,
+          dy = e.deltaY;
+        if (e.deltaMode === 1) {
+          dx *= LINE;
+          dy *= LINE;
+        } // Firefox：行
+        else if (e.deltaMode === 2) {
+          dx *= PAGE;
+          dy *= PAGE;
+        } // 页
+        return { dx, dy };
+      }
+      function roundRect(g, x, y, w, h, r) {
+        r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+        g.beginPath();
+        g.moveTo(x + r, y);
+        g.arcTo(x + w, y, x + w, y + h, r);
+        g.arcTo(x + w, y + h, x, y + h, r);
+        g.arcTo(x, y + h, x, y, r);
+        g.arcTo(x, y, x + w, y, r);
+        g.closePath();
+      }
+
+      /* ============ Slider：垂直 / 横向 同一套数学 ============
+   核心抽象：
+     a = 沿轴坐标（垂直→y，横向→x）      c = 跨轴坐标（垂直→x，横向→y）
+   所有计算都在 (a, c) 里做，只有最后一步 r() 映射到 (x, y)。
+   ========================================================= */
+      class Slider {
+        constructor(cv, opt = {}) {
+          this.cv = cv;
+          this.ctx = cv.getContext("2d");
+          this.isH = opt.orient === "horizontal";
+
+          this.min = opt.min ?? 0;
+          this.max = opt.max ?? 100;
+          this.step = opt.step ?? 1;
+          this.inverted = !!opt.inverted;
+
+          /* 尺寸：A = 沿轴长度，C = 跨轴厚度（兼容旧的 handleW / handleH） */
+          this.trackT = opt.trackT ?? (this.isH ? 20 : 10);
+          if (opt.handleW != null && opt.handleH != null) {
+            this.handleA = this.isH ? opt.handleW : opt.handleH; // 沿轴
+            this.handleC = this.isH ? opt.handleH : opt.handleW; // 跨轴
+          } else {
+            this.handleA = opt.handleA ?? (this.isH ? 40 : 24);
+            this.handleC = opt.handleC ?? (this.isH ? 24 : 80);
+          }
+
+          this.tickEvery = opt.tickEvery ?? 0; // 刻度间隔（值域单位），0 = 不画
+          this.tooltip = opt.tooltip !== false;
+          this.wheelStepPx = opt.wheelStepPx ?? 40;
+          this.jumpOnClick = opt.jumpOnClick !== false;
+          this.onInput = opt.onInput || (() => {});
+          this.onChange = opt.onChange || (() => {});
+          this.onCommit = opt.onCommit || (() => {});
+
+          this.value = this.quantize(opt.value ?? this.min);
+          this.enabled = true;
+          this.hover = false;
+          this.dragging = false;
+          this.focused = false;
+          this.wheelAcc = 0;
+          this.wheelTicking = false;
+          this.dpr = 0;
+          this.w = 0;
+          this.h = 0;
+          this.tooltip = false;
+
+          this.cv.style.touchAction = "none";
+          this._bind();
+          this.resize();
+          if (window.ResizeObserver)
+            new ResizeObserver(() => this.resize()).observe(cv);
+          else window.addEventListener("resize", () => this.resize());
+        }
+
+        /* ---- 值 ↔ 沿轴坐标 ---- */
+        get span() {
+          return this.max - this.min;
+        }
+        quantize(v) {
+          const n = Math.round((v - this.min) / this.step);
+          const maxN = Math.max(0, Math.round(this.span / this.step));
+          return +(
+            this.min +
+            Math.min(maxN, Math.max(0, n)) * this.step
+          ).toFixed(6);
+        }
+        setValue(v, silent = false) {
+          const nv = this.quantize(v);
+          if (nv === this.value) return;
+          this.value = nv;
+          this.draw();
+          if (!silent) {
+            this.onInput(nv);
+            this.onChange(nv);
+          }
+        }
+
+        /* 是否“反向”：垂直默认上大下小 → 反向；横向默认左小右大 → 正向；inverted 取反 */
+        _rev() {
+          return this.isH ? this.inverted : !this.inverted;
+        }
+
+        metrics() {
+          const len = this.isH ? this.w : this.h; // 沿轴总长
+          const cross = this.isH ? this.h : this.w; // 跨轴总长
+          const pad = this.handleA / 2 + 2; // 两端各留半个滑块，防止画到画布外
+          const L = Math.max(1, len - pad * 2);
+          return { pad, L, start: pad, end: pad + L, mid: cross / 2 };
+        }
+
+        posOf(v) {
+          // 值 → 沿轴像素
+          const { pad, L, end } = this.metrics();
+          const t = (v - this.min) / this.span;
+          return this._rev() ? end - t * L : pad + t * L;
+        }
+        valueFromPos(a) {
+          // 沿轴像素 → 值
+          const { pad, L, end } = this.metrics();
+          let t = this._rev() ? (end - a) / L : (a - pad) / L;
+          t = Math.min(1, Math.max(0, t));
+          return this.quantize(this.min + t * this.span);
+        }
+
+        /* (沿轴a, 跨轴c, 沿轴长, 跨轴长) → (x, y, w, h) —— 唯一的坐标轴映射点 */
+        r(a, c, aLen, cLen) {
+          return this.isH ? [a, c, aLen, cLen] : [c, a, cLen, aLen];
+        }
+
+        /* ---- 事件 ---- */
+        _bind() {
+          const xy = (e) => {
+            const b = this.cv.getBoundingClientRect();
+            return [e.clientX - b.left, e.clientY - b.top];
+          };
+          const toAC = ([x, y]) => (this.isH ? [x, y] : [y, x]); // → [沿轴, 跨轴]
+
+          this.cv.addEventListener("pointerdown", (e) => {
+            if (!this.enabled) return;
+            this.cv.setPointerCapture(e.pointerId);
+            this.cv.focus({ preventScroll: true });
+            this.dragging = true;
+            const [a, c] = toAC(xy(e));
+            if (this.jumpOnClick || this._hit(a, c))
+              this.setValue(this.valueFromPos(a));
+            this.draw();
+          });
+
+          this.cv.addEventListener("pointermove", (e) => {
+            if (!this.enabled) return;
+            const [a, c] = toAC(xy(e));
+            this.hover = this.dragging || this._hit(a, c);
+            if (this.dragging)
+              this.setValue(this.valueFromPos(a)); // ← 只换算一次
+            else this.draw();
+          });
+
+          const end = () => {
+            if (!this.dragging) return;
+            this.dragging = false;
+            this.onCommit(this.value);
+            this.draw();
+          };
+          this.cv.addEventListener("pointerup", end);
+          this.cv.addEventListener("pointercancel", end);
+          this.cv.addEventListener("pointerleave", () => {
+            this.hover = false;
+            this.draw();
+          });
+
+          this.cv.addEventListener(
+            "wheel",
+            (e) => {
+              e.preventDefault(); // 必须配 { passive:false }
+              if (!this.enabled) return;
+              const d = normalizeWheel(e);
+              this.wheelAcc += this.isH ? d.dx || d.dy : d.dy; // 横向优先吃 dx
+              if (this.wheelTicking) return;
+              this.wheelTicking = true;
+              requestAnimationFrame(() => {
+                let changed = false;
+                while (Math.abs(this.wheelAcc) >= this.wheelStepPx) {
+                  const dir = Math.sign(this.wheelAcc);
+                  const inc = this._rev() ? dir : -dir; // 沿轴正方向滚 → 值增大
+                  const nv = this.quantize(this.value + inc * this.step);
+                  if (nv !== this.value) {
+                    this.value = nv;
+                    changed = true;
+                  }
+                  this.wheelAcc -= dir * this.wheelStepPx;
+                }
+                this.wheelTicking = false;
+                if (changed) {
+                  this.draw();
+                  this.onChange(this.value);
+                  this.onCommit(this.value);
+                }
+              });
+            },
+            { passive: false },
+          );
+
+          this.cv.addEventListener("focus", () => {
+            this.focused = true;
+            this.draw();
+          });
+          this.cv.addEventListener("blur", () => {
+            this.focused = false;
+            this.draw();
+          });
+          this.cv.addEventListener("keydown", (e) => {
+            if (!this.enabled) return;
+            const towardMax = this._rev() ? -1 : 1; // 垂直向上 / 横向向右
+            let nv = null;
+            switch (e.key) {
+              case "ArrowUp":
+              case "ArrowRight":
+                nv = this.value + towardMax * this.step;
+                break;
+              case "ArrowDown":
+              case "ArrowLeft":
+                nv = this.value - towardMax * this.step;
+                break;
+              case "PageUp":
+                nv = this.value + towardMax * this.step * 10;
+                break;
+              case "PageDown":
+                nv = this.value - towardMax * this.step * 10;
+                break;
+              case "Home":
+                nv = this._rev() ? this.max : this.min;
+                break; // 跳到“起始端”
+              case "End":
+                nv = this._rev() ? this.min : this.max;
+                break;
+              default:
+                return;
+            }
+            e.preventDefault();
+            this.setValue(nv);
+            this.onCommit(this.value);
+          });
+        }
+        _hit(a, c) {
+          const { mid } = this.metrics();
+          return (
+            Math.abs(c - mid) <= this.handleC / 2 + 4 &&
+            Math.abs(a - this.posOf(this.value)) <= this.handleA / 2 + 4
+          );
+        }
+
+        /* ---- 绘制 ---- */
+        resize() {
+          const dpr = window.devicePixelRatio || 1;
+          const w = this.cv.clientWidth,
+            h = this.cv.clientHeight;
+          if (w === this.w && h === this.h && dpr === this.dpr) return;
+          this.w = w;
+          this.h = h;
+          this.dpr = dpr;
+          this.cv.width = Math.round(w * dpr);
+          this.cv.height = Math.round(h * dpr);
+          if (w > 0 && h > 0) this.draw();
+        }
+
+        draw() {
+          const g = this.ctx,
+            { w, h } = this;
+          if (!(w > 0 && h > 0)) return;
+          g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+          g.clearRect(0, 0, w, h);
+
+          const { start, end, mid, L } = this.metrics();
+          const rev = this._rev();
+          const pos = this.posOf(this.value);
+          const minEnd = rev ? end : start; // “值最小”那一端
+          const dim = !this.enabled;
+          const C_TRACK = "#373737",
+            C_FILL = "#6329B6";
+          const rr = (a, c, al, cl, r) => {
+            const [x, y, ww, hh] = this.r(a, c, al, cl);
+            roundRect(g, x, y, ww, hh, r);
+          };
+
+          let radius = this.trackT / 2;
+          if (radius > 12) radius = 12;
+          /* 1) 轨道 */
+          g.fillStyle = dim ? "#2a2a2a" : C_TRACK;
+          rr(start - 10, mid - this.trackT / 2, L + 20, this.trackT, radius);
+          g.fill();
+
+          /* 2) 已填充段：从最小端画到 handle */
+          const f0 = Math.min(pos, minEnd),
+            f1 = Math.max(pos, minEnd);
+          if (f1 - f0 > 0.5) {
+            g.fillStyle = dim ? "#555" : C_FILL;
+            rr(
+              f0 - 10,
+              mid - this.trackT / 2,
+              f1 - f0 + 20,
+              this.trackT,
+              radius,
+            );
+            g.fill();
+          }
+          /* 3) 刻度点 */
+          if (this.tickEvery > 0) {
+            const ts = 12;
+            for (let v = this.min; v <= this.max + 1e-9; v += this.tickEvery) {
+              const q = this.quantize(v);
+              const a = this.posOf(q);
+              const major = q === this.min || q === this.max;
+              g.fillStyle = major ? "#8a8a8a" : "#cacaca";
+              const size = major ? ts + 2 : ts;
+              rr(a - size / 2, mid - size / 2, size, size, size / 2);
+              g.fill();
+            }
+          }
+
+          /* 4) handle */
+          const r = 6;
+          if (!dim && (this.hover || this.dragging)) {
+            // 光晕
+            g.fillStyle = "rgba(99,41,182,.28)";
+            rr(
+              pos - this.handleA / 2 - 5,
+              mid - this.handleC / 2 - 5,
+              this.handleA + 10,
+              this.handleC + 10,
+              r + 5,
+            );
+            g.fill();
+          }
+          g.fillStyle = dim ? "#666" : "#f2f2f2";
+          g.strokeStyle = dim ? "#555" : this.dragging ? C_FILL : "#a8a8a8";
+          g.lineWidth = 1;
+          rr(
+            pos - this.handleA / 2,
+            mid - this.handleC / 2,
+            this.handleA,
+            this.handleC,
+            r,
+          );
+          g.fill();
+          g.stroke();
+
+          if (this.focused && !dim) {
+            // 焦点环
+            g.strokeStyle = C_FILL;
+            g.lineWidth = 2;
+            rr(
+              pos - this.handleA / 2 - 4,
+              mid - this.handleC / 2 - 4,
+              this.handleA + 8,
+              this.handleC + 8,
+              r + 4,
+            );
+            g.stroke();
+          }
+
+          /* grip：垂直于轴的两条短线，统一用 (a,c) 描述 */
+          g.strokeStyle = dim ? "#888" : "#8a8a8a";
+          g.lineWidth = 1.5;
+          g.lineCap = "round";
+          for (const off of [-3, 3]) {
+            const [x0, y0] = this.isH
+              ? [pos + off, mid - 5]
+              : [mid - 5, pos + off];
+            const [x1, y1] = this.isH
+              ? [pos + off, mid + 5]
+              : [mid + 5, pos + off];
+            g.beginPath();
+            g.moveTo(x0, y0);
+            g.lineTo(x1, y1);
+            g.stroke();
+          }
+
+          /* 5) 数值气泡 */
+          if (this.tooltip) {
+            const txt = String(+this.value.toFixed(2));
+            g.font =
+              '600 11px system-ui,-apple-system,"Microsoft YaHei",sans-serif';
+            const bw = g.measureText(txt).width + 12,
+              bh = 18;
+            let bx, by;
+            if (this.isH) {
+              bx = pos - bw / 2;
+              by = mid - this.handleC / 2 - bh - 8;
+            } else {
+              bx = mid + this.handleC / 2 + 8;
+              by = pos - bh / 2;
+            }
+            g.fillStyle = dim ? "#3a3a3a" : this.dragging ? C_FILL : "#3e3e42";
+            roundRect(g, bx, by, bw, bh, 4);
+            g.fill();
+            g.fillStyle = dim ? "#888" : "#fff";
+            g.textAlign = "center";
+            g.textBaseline = "middle";
+            g.fillText(txt, bx + bw / 2, by + bh / 2 + 0.5);
+          }
+        }
+      }
+
+      /* ============ 实例 ============ */
+      const s1 = new Slider(document.getElementById("s1"), {
+        min: 0,
+        max: 2,
+        step: 1,
+        value: 1,
+        trackT: 60,
+        handleA: 20,
+        handleC: 80,
+        onChange: (v) => (document.getElementById("v1").textContent = v),
+      });
+      const s2 = new Slider(document.getElementById("s2"), {
+        // 兼容旧参数 handleW / handleH
+        min: 0,
+        max: 100,
+        step: 10,
+        value: 50,
+        tickEvery: 10,
+        trackT: 30,
+        handleW: 20,
+        handleH: 40,
+        onChange: (v) => (document.getElementById("v2").textContent = v + " %"),
+      });
+      const s3 = new Slider(document.getElementById("s3"), {
+        min: -30,
+        max: 30,
+        step: 1,
+        value: 0,
+        trackT: 50,
+        handleA: 20,
+        handleC: 80,
+        onChange: (v) => (document.getElementById("v3").textContent = v + "°"),
+        onCommit: (v) => console.log("setSensorAngle(" + v + ")"),
+      });
+      const s4 = new Slider(document.getElementById("s4"), {
+        orient: "horizontal",
+        min: 0,
+        max: 100,
+        step: 10,
+        value: 50,
+        tickEvery: 10,
+        trackT: 20,
+        handleA: 40,
+        handleC: 24,
+        onChange: (v) => (document.getElementById("v4").textContent = v + " %"),
+      });
+      const s5 = new Slider(document.getElementById("s5"), {
+        orient: "horizontal",
+        min: -30,
+        max: 30,
+        step: 1,
+        value: 0,
+        inverted: true,
+        tickEvery: 10,
+        trackT: 14,
+        handleA: 32,
+        handleC: 22,
+        onChange: (v) => (document.getElementById("v5").textContent = v + "°"),
+      });
+      [s1, s2, s3, s4, s5].forEach((s) => s.onChange(s.value));
+
+      document.getElementById("btnDis").onclick = () => {
+        s2.enabled = !s2.enabled;
+        s2.draw();
+      };
+      document.getElementById("btnSet").onclick = () => {
+        s3.setValue(Math.round(Math.random() * 60) - 30);
+        s3.onCommit(s3.value);
+      };
+    </script>
+  </body>
+</html>

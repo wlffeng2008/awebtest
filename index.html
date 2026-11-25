@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中国美食「Chinese Cuisine」</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        color: #222;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 60px auto;
+        padding: 32px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+      .easybutton {        
+        border-radius: 12px;
+        background-color: blueviolet;
+        position: absolute;
+        top: 10px;
+        left: 150px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>用英语讲中国文化：中国美食「Chinese Cuisine」</h1>
+      <p>Chinese cuisine is an irreplaceable part of traditional Chinese culture, with a history stretching back thousands of
+    years. It is far more than just food to eat; it carries the wisdom of life, aesthetic tastes and the warm human touch of
+    the Chinese nation. Every dish tells a story of the land and its people.</p>
+        <p>中国美食是中华传统文化不可替代的组成部分，拥有数千年的发展历史。它远不止是果腹的食物，更承载着中国人的生活智慧、审美意趣与人间烟火。每一道菜肴，都诉说着这片土地与人民的故事。</p>
+      
+        <div style="position: relative; border-color: red; border-width: 1px; border-style: solid;">        
+        <div id="easytip" style="margin-top: 24px; position: absolute; top: 60px; left: 150px; width: 300px;min-height: 300px; border-radius: 8px; background-color: rgba(43, 70, 226, 0.8);color:#fff; cursor: pointer;">
+            <p id="easytip-content"> 1234567 </p>
+            <button id="close-btn" onclick="closeEasytip()">关闭</button>
+        </div>
+        <p>This is a simple HTML page.</p>
+        <input type="button" class="easybutton" value="点击我0" style="height: 30px;left: 250px;"/>
+        <input type="button" class="easybutton" value="点击我1" style="height: 30px;left: 350px;" />
+        <input type="button" class="easybutton" value="点击我2" style="height: 30px;left: 450px;" />
+      </div>
+
+        <p>With its vast land and diverse customs, China has developed rich and varied culinary styles across different regions.
+    Southern cuisine tends to be light and sweet, focusing on fresh ingredients, while northern food is often hearty and
+    salty, suitable for cold climates. Sichuan food is famous for its bold spicy taste, and Cantonese cuisine is praised for
+    its delicate original
+    flavor.</p>
+        <p>中国幅员辽阔、风土各异，不同地域孕育出丰富多元的饮食流派。南方饮食清淡鲜甜，注重食材本味；北方饮食醇厚偏咸，适配寒冷气候。川菜以浓烈麻辣著称，粤菜则以清鲜本味见长。</p>
+        <p>Traditional Chinese cooking
+        pays great attention to both skill and balance. Cooks master precise control of heat, delicate knife skills and balanced
+        seasoning. The core pursuit is the perfect harmony of color, aroma, taste and appearance, turning ordinary ingredients
+        into pleasing works of art.</p>
+        <p>中国传统烹饪十分讲究技艺与平衡。厨师精准把控火候、施展细腻刀工、调配均衡滋味，核心追求色香味形的和谐统一，将平凡食材化作赏心悦目的艺术品。</p>
+        <p>Food in China is deeply
+        tied to family and culture. On festivals and family days, people gather around tables full of rich dishes. A hearty meal
+        is not only a feast for the stomach, but also a symbol of reunion, care and deep affection between family
+        members.</p>
+        <p>在中国，饮食与家庭、文化深度绑定。每逢佳节与阖家团聚之日，人们围坐一桌，满桌佳肴热气腾腾。一顿丰盛的饭菜，不止是味蕾的享受，更是团圆、牵挂与浓浓亲情的象征。</p>
+        <p>Chinese food culture also values
+        moderation and health. People match food according to seasons and physical conditions, believing that diet supports good
+        health. This idea of keeping a balance between diet and life has been passed down from generation to
+        generation.</p>
+        <p>中国饮食文化也讲究适度与养生。人们依照时节与身体状态搭配饮食，相信食养之道。这种饮食与生活相平衡的理念，代代相传、深入人心。</p>
+        <p>Today, Chinese cuisine continues to shine with
+        new vitality. It keeps traditional tastes while making innovative changes. More and more Chinese dishes go global,
+        allowing the world to taste the charm of Chinese food and feel the warmth of Chinese
+        culture.</p>
+        <p>时至今日，中国美食依旧焕发着全新的生命力。它守住传统风味，也做出创新表达。越来越多的中华美食走向世界，让世界品尝中国味道，感受中国文化的温度。</p>
+        <p>Chinese cuisine is the art of daily life.
+        It hides the wisdom of living in the taste of food, and warms every ordinary day. It will always be a bright treasure of
+        Chinese civilization, passing on warmth and happiness from generation to
+        generation.</p>
+        <p>中国美食，是日常的生活艺术。它把生活智慧藏进烟火滋味，温暖每一个平凡日常。它始终是中华文明的璀璨瑰宝，将温情与幸福代代传递。</p>
+
+        <div>
+            <h2>重点单词（读音+释义）</h2>
+            <!-- <ul>
+                <li>cuisine /kwɪˈziːn/ n. 菜肴；烹饪艺术</li>
+                <li>bite /baɪt/ n. 一口；少量</li>
+                <li>culture /ˈkʌltʃə(r)/ n. 文化；文明</li>
+                <li>irreplaceable /ˌɪrɪˈpleɪsəbl/ adj. 不可替代的</li>
+                <li>traditional /trəˈdɪʃənl/ adj. 传统的</li>
+                <li>stretch /stretʃ/ v. 延续；伸展</li>
+                <li>wisdom /ˈwɪzdəm/ n. 智慧；才智</li>
+                <li>aesthetic  /iːsˈθetɪk/ adj.  审美的；美学的</li>
+                <li>dish /dɪʃ/ n. 菜肴；碟</li>
+                <li>vast /vɑːst/ adj. 辽阔的；广阔的</li>
+                <li>diverse /daɪˈvɜːs/ adj. 多样的；多元的</li>
+                <li>culinary  /ˈkʌlɪnəri/ adj. 烹饪的；食物的</li>
+                <li>region   /ˈriːdʒən/ n. 地区；地域</li>
+                <li>light /laɪt/ adj. 清淡的；轻的</li>
+                <li>fresh /freʃ/ adj. 新鲜的</li>
+                <li>ingredient /ɪnˈɡriːdiənt/ n. 食材；原料</li>
+                <li>hearty /ˈhɑːti/ adj.  丰盛的；醇厚的</li>
+                <li>climate /ˈklaɪmət/ n. 气候</li>
+                <li>spicy /ˈspaɪsi/ adj. 辛辣的</li>
+                <li>cantonese /ˌkæntəˈniːz/ adj. 广东的；粤菜的</li>
+                <li>delicate /ˈdelɪkət/ adj.  精致的；清淡的</li>
+                <li>original /əˈrɪdʒənl/ adj. 原本的；原味的</li>
+                <li>cooking /ˈkʊkɪŋ/ n. 烹饪</li>
+                <li>balance /ˈbæləns/ n. 平衡；均衡</li>
+                <li>precise /prɪˈsaɪs/ adj. 精准的</li>
+                <li>heat /hiːt/ n. 火候；热量</li>
+                <li>knife /naɪf/ n. 刀</li>
+                <li>seasoning /ˈsiːzənɪŋ/ n.  调味；调料</li>
+                <li>core /kɔː(r)/ n. 核心</li>
+                <li>harmony /ˈhɑːməni/ n. 和谐；融洽</li>
+                <li>aroma /əˈrəʊmə/ n. 香味；香气</li>
+                <li>ordinary /ˈɔːdnri/ adj. 普通的；平凡的</li>
+                <li>pleasing /ˈpliːzɪŋ/ adj. 令人愉悦的</li>
+                <li>festival  /ˈfestɪvl/ n. 节日</li>
+                <li>gather /ˈɡæðə(r)/ v. 聚集；集合</li>
+                <li>feast /fiːst/ n. 盛宴；大餐</li>
+                <li>stomach /ˈstʌmək/ n. 胃；腹部</li>
+                <li>symbol /ˈsɪmbl/ n. 象征；标志</li>
+                <li>reunion /ˌriːˈjuːniən/ n. 团聚；团圆</li>
+                <li>affection /əˈfekʃn/ n. 喜爱；感情</li>
+                <li>moderation /ˌmɒdəˈreɪʃn/ n. 适度；节制</li>
+                <li>health /helθ/ n. 健康</li>
+                <li>match /mætʃ/ v. 搭配；匹配</li>
+                <li>season /ˈsiːzn/ n. 季节；时节</li>
+                <li>innovative /ˈɪnəveɪtɪv/ adj. 创新的</li>
+                <li>global /ˈɡləʊbl/ adj. 全球的；全世界的</li>
+                <li>treasure /ˈtreʒə(r)/ n. 珍宝；财富</li>
+                <li>generation /ˌdʒenəˈreɪʃn/ n. 一代人；代</li>
+                <li>warmth /wɔːmθ/ n. 温暖；温度</li>
+                <li>vitality /vaɪˈtæləti/ n. 活力；生机</li>
+            </ul> -->
+            <table border="0" cellpadding="10" cellspacing="0"
+                style="border-collapse: collapse; text-align: left; font-family: sans-serif;">
+                <thead style="background-color: #f5f5f5;">
+                    <tr>
+                        <th>单词</th>
+                        <th>音标</th>
+                        <th>词性</th>
+                        <th>释义</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>cuisine</td>
+                        <td>/kwɪˈziːn/</td>
+                        <td>n.</td>
+                        <td>菜肴；烹饪艺术</td>
+                    </tr>
+                    <tr>
+                        <td>bite</td>
+                        <td>/baɪt/</td>
+                        <td>n.</td>
+                        <td>一口；少量</td>
+                    </tr>
+                    <tr>
+                        <td>culture</td>
+                        <td>/ˈkʌltʃə(r)/</td>
+                        <td>n.</td>
+                        <td>文化；文明</td>
+                    </tr>
+                    <tr>
+                        <td>irreplaceable</td>
+                        <td>/ˌɪrɪˈpleɪsəbl/</td>
+                        <td>adj.</td>
+                        <td>不可替代的</td>
+                    </tr>
+                    <tr>
+                        <td>traditional</td>
+                        <td>/trəˈdɪʃənl/</td>
+                        <td>adj.</td>
+                        <td>传统的</td>
+                    </tr>
+                    <tr>
+                        <td>stretch</td>
+                        <td>/stretʃ/</td>
+                        <td>v.</td>
+                        <td>延续；伸展</td>
+                    </tr>
+                    <tr>
+                        <td>wisdom</td>
+                        <td>/ˈwɪzdəm/</td>
+                        <td>n.</td>
+                        <td>智慧；才智</td>
+                    </tr>
+                    <tr>
+                        <td>aesthetic</td>
+                        <td>/iːsˈθetɪk/</td>
+                        <td>adj.</td>
+                        <td>审美的；美学的</td>
+                    </tr>
+                    <tr>
+                        <td>dish</td>
+                        <td>/dɪʃ/</td>
+                        <td>n.</td>
+                        <td>菜肴；碟</td>
+                    </tr>
+                    <tr>
+                        <td>vast</td>
+                        <td>/vɑːst/</td>
+                        <td>adj.</td>
+                        <td>辽阔的；广阔的</td>
+                    </tr>
+                    <tr>
+                        <td>diverse</td>
+                        <td>/daɪˈvɜːs/</td>
+                        <td>adj.</td>
+                        <td>多样的；多元的</td>
+                    </tr>
+                    <tr>
+                        <td>culinary</td>
+                        <td>/ˈkʌlɪnəri/</td>
+                        <td>adj.</td>
+                        <td>烹饪的；食物的</td>
+                    </tr>
+                    <tr>
+                        <td>region</td>
+                        <td>/ˈriːdʒən/</td>
+                        <td>n.</td>
+                        <td>地区；地域</td>
+                    </tr>
+                    <tr>
+                        <td>light</td>
+                        <td>/laɪt/</td>
+                        <td>adj.</td>
+                        <td>清淡的；轻的</td>
+                    </tr>
+                    <tr>
+                        <td>fresh</td>
+                        <td>/freʃ/</td>
+                        <td>adj.</td>
+                        <td>新鲜的</td>
+                    </tr>
+                    <tr>
+                        <td>ingredient</td>
+                        <td>/ɪnˈɡriːdiənt/</td>
+                        <td>n.</td>
+                        <td>食材；原料</td>
+                    </tr>
+                    <tr>
+                        <td>hearty</td>
+                        <td>/ˈhɑːti/</td>
+                        <td>adj.</td>
+                        <td>丰盛的；醇厚的</td>
+                    </tr>
+                    <tr>
+                        <td>climate</td>
+                        <td>/ˈklaɪmət/</td>
+                        <td>n.</td>
+                        <td>气候</td>
+                    </tr>
+                    <tr>
+                        <td>spicy</td>
+                        <td>/ˈspaɪsi/</td>
+                        <td>adj.</td>
+                        <td>辛辣的</td>
+                    </tr>
+                    <tr>
+                        <td>cantonese</td>
+                        <td>/ˌkæntəˈniːz/</td>
+                        <td>adj.</td>
+                        <td>广东的；粤菜的</td>
+                    </tr>
+                    <tr>
+                        <td>delicate</td>
+                        <td>/ˈdelɪkət/</td>
+                        <td>adj.</td>
+                        <td>精致的；清淡的</td>
+                    </tr>
+                    <tr>
+                        <td>original</td>
+                        <td>/əˈrɪdʒənl/</td>
+                        <td>adj.</td>
+                        <td>原本的；原味的</td>
+                    </tr>
+                    <tr>
+                        <td>cooking</td>
+                        <td>/ˈkʊkɪŋ/</td>
+                        <td>n.</td>
+                        <td>烹饪</td>
+                    </tr>
+                    <tr>
+                        <td>balance</td>
+                        <td>/ˈbæləns/</td>
+                        <td>n.</td>
+                        <td>平衡；均衡</td>
+                    </tr>
+                    <tr>
+                        <td>precise</td>
+                        <td>/prɪˈsaɪs/</td>
+                        <td>adj.</td>
+                        <td>精准的</td>
+                    </tr>
+                    <tr>
+                        <td>heat</td>
+                        <td>/hiːt/</td>
+                        <td>n.</td>
+                        <td>火候；热量</td>
+                    </tr>
+                    <tr>
+                        <td>knife</td>
+                        <td>/naɪf/</td>
+                        <td>n.</td>
+                        <td>刀</td>
+                    </tr>
+                    <tr>
+                        <td>seasoning</td>
+                        <td>/ˈsiːzənɪŋ/</td>
+                        <td>n.</td>
+                        <td>调味；调料</td>
+                    </tr>
+                    <tr>
+                        <td>core</td>
+                        <td>/kɔː(r)/</td>
+                        <td>n.</td>
+                        <td>核心</td>
+                    </tr>
+                    <tr>
+                        <td>harmony</td>
+                        <td>/ˈhɑːməni/</td>
+                        <td>n.</td>
+                        <td>和谐；融洽</td>
+                    </tr>
+                    <tr>
+                        <td>aroma</td>
+                        <td>/əˈrəʊmə/</td>
+                        <td>n.</td>
+                        <td>香味；香气</td>
+                    </tr>
+                    <tr>
+                        <td>ordinary</td>
+                        <td>/ˈɔːdnri/</td>
+                        <td>adj.</td>
+                        <td>普通的；平凡的</td>
+                    </tr>
+                    <tr>
+                        <td>pleasing</td>
+                        <td>/ˈpliːzɪŋ/</td>
+                        <td>adj.</td>
+                        <td>令人愉悦的</td>
+                    </tr>
+                    <tr>
+                        <td>festival</td>
+                        <td>/ˈfestɪvl/</td>
+                        <td>n.</td>
+                        <td>节日</td>
+                    </tr>
+                    <tr>
+                        <td>gather</td>
+                        <td>/ˈɡæðə(r)/</td>
+                        <td>v.</td>
+                        <td>聚集；集合</td>
+                    </tr>
+                    <tr>
+                        <td>feast</td>
+                        <td>/fiːst/</td>
+                        <td>n.</td>
+                        <td>盛宴；大餐</td>
+                    </tr>
+                    <tr>
+                        <td>stomach</td>
+                        <td>/ˈstʌmək/</td>
+                        <td>n.</td>
+                        <td>胃；腹部</td>
+                    </tr>
+                    <tr>
+                        <td>symbol</td>
+                        <td>/ˈsɪmbl/</td>
+                        <td>n.</td>
+                        <td>象征；标志</td>
+                    </tr>
+                    <tr>
+                        <td>reunion</td>
+                        <td>/ˌriːˈjuːniən/</td>
+                        <td>n.</td>
+                        <td>团聚；团圆</td>
+                    </tr>
+                    <tr>
+                        <td>affection</td>
+                        <td>/əˈfekʃn/</td>
+                        <td>n.</td>
+                        <td>喜爱；感情</td>
+                    </tr>
+                    <tr>
+                        <td>moderation</td>
+                        <td>/ˌmɒdəˈreɪʃn/</td>
+                        <td>n.</td>
+                        <td>适度；节制</td>
+                    </tr>
+                    <tr>
+                        <td>health</td>
+                        <td>/helθ/</td>
+                        <td>n.</td>
+                        <td>健康</td>
+                    </tr>
+                    <tr>
+                        <td>match</td>
+                        <td>/mætʃ/</td>
+                        <td>v.</td>
+                        <td>搭配；匹配</td>
+                    </tr>
+                    <tr>
+                        <td>season</td>
+                        <td>/ˈsiːzn/</td>
+                        <td>n.</td>
+                        <td>季节；时节</td>
+                    </tr>
+                    <tr>
+                        <td>innovative</td>
+                        <td>/ˈɪnəveɪtɪv/</td>
+                        <td>adj.</td>
+                        <td>创新的</td>
+                    </tr>
+                    <tr>
+                        <td>global</td>
+                        <td>/ˈɡləʊbl/</td>
+                        <td>adj.</td>
+                        <td>全球的；全世界的</td>
+                    </tr>
+                    <tr>
+                        <td>treasure</td>
+                        <td>/ˈtreʒə(r)/</td>
+                        <td>n.</td>
+                        <td>珍宝；财富</td>
+                    </tr>
+                    <tr>
+                        <td>generation</td>
+                        <td>/ˌdʒenəˈreɪʃn/</td>
+                        <td>n.</td>
+                        <td>一代人；代</td>
+                    </tr>
+                    <tr>
+                        <td>warmth</td>
+                        <td>/wɔːmθ/</td>
+                        <td>n.</td>
+                        <td>温暖；温度</td>
+                    </tr>
+                    <tr>
+                        <td>vitality</td>
+                        <td>/vaɪˈtæləti/</td>
+                        <td>n.</td>
+                        <td>活力；生机</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+      let easytip = document.getElementById('easytip');
+      let easytipContent = document.getElementById('easytip-content');
+      document.querySelector('div').addEventListener('click', function() {
+        //this.style.backgroundColor = 'red';
+      });
+
+      let timeGoing=0;
+      setInterval(() => {
+        timeGoing++;
+      }, 1);
+      let lastKey = '';
+
+      easytip.addEventListener('mousedown', function() {
+        timeGoing = 0;
+      });
+      easytip.addEventListener('mouseup', function() {
+        console.log(timeGoing);
+        timeGoing = 0;
+      });
+      easytip.addEventListener("keydown", function(e) {
+        console.log(e.key);
+        timeGoing = 0;
+      });
+      easytip.addEventListener("keyup", function(e) {
+        console.log(e.key, timeGoing);
+        timeGoing = 0;
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if(lastKey === e.key) return;
+        if(e.isrepeat) return;
+        timeGoing = 0;
+        lastKey = e.key;
+        console.log('global keydown:', e.key);
+        });
+
+        document.addEventListener("keyup", (e) => {
+            console.log(timeGoing);
+            console.log('global keyup:', e.key);
+        });
+
+      function changeColor() {
+        this.style.backgroundColor = 'red';
+      }
+      //document.querySelector('div').addEventListener('click', changeColor);
+
+      let btns = document.querySelectorAll('.easybutton');
+      btns.forEach((btn,index) => {
+        btn.addEventListener('click', function() {
+          this.style.backgroundColor = 'red';
+          easytipContent.innerHTML = '你点击了' + this.value + index;
+        });
+        btn.addEventListener('mouseover', function() {
+          this.style.backgroundColor = 'blue';
+          easytip.style.display = 'block';
+          easytip.style.left = this.offsetLeft + 'px';
+          easytip.style.top = this.offsetTop + 10 + 'px';
+        });
+        btn.addEventListener('mouseout', function() {
+          this.style.backgroundColor = 'blueviolet';
+          //easytip.style.display = 'none';
+        });
+      });
+        function closeEasytip() {
+            easytip.style.display = 'none';
+      }
+
+        </script>
+
+  </body>
+</html>

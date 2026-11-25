@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab 按钮美化 Demo</title>
+<style>
+  :root { --brand: #2e6cca; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: #f5f7fa;
+    color: #1f2329;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 800px; margin: 0 auto; background-color: aquamarine;}
+  h2 { font-size: 16px; margin: 32px 0 12px; color: #646a73; font-weight: 500; }
+  h2:first-child { margin-top: 0; }
+
+  .demo {
+    background: rgb(100, 88, 100);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.06);
+  }
+
+  /* ============ 面板（两种风格共用） ============ */
+  .subTab { display: none; padding-top: 24px; width: 100%; height: 400px;}
+  .subTab.is-active { display: block; animation: fadeIn .25s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .subTab h3 { margin: 0 0 8px; font-size: 18px; }
+  .subTab p  { margin: 0 0 16px; color: #646a73; font-size: 14px; }
+  .card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 14px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eceef0;
+    font-size: 14px;
+  }
+  .row:last-child { border-bottom: none; padding-bottom: 0; }
+  .row:first-child { padding-top: 0; }
+  /* .row>:nth-child(2) { color: green; font-size: larger; } */
+  .row span:last-child { color: #8f959e; }
+
+  .tip {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #8f959e;
+    padding-top: 12px;
+    border-top: 1px dashed #eceef0;
+  }
+
+  /* ============ 风格 A：分段控件 ============ */
+  .seg .frameHeader {
+    display: inline-flex;
+    gap: 4px;
+    padding: 0px;
+    background: #f1f325;
+    border-radius: 10px;
+    width: 100%;
+    overflow-x: auto;          /* 窄屏可横向滚动 */
+    max-height: 400px;
+    overflow-y: scroll;
+  }
+  .seg .tab {
+    padding: 8px 18px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #646a73;
+    cursor: pointer;
+    white-space: nowrap;
+    width: 100px;
+    transition: background .2s, color .2s, box-shadow .2s;
+  }
+  .seg .tab:hover { color: #1f2329; background: transparent;}
+  .seg .tab.is-active {
+    background: #6329B6;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+  .seg .tab:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* ============ 风格 B：下划线指示条 ============ */
+  .line .frameHeader {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #dee0e3;
+    overflow-x: auto;
+  }
+  .line .tab {
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: #646a73;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    margin-bottom: 0px;       /* 盖住容器的 1px 边框 */
+    transition: color .2s, border-color .2s;
+  }
+  .line .tab:hover { color: #1f2329; }
+  .line .tab.is-active {
+    color: var(--brand);
+    font-weight: 500;
+    border-bottom-color: var(--brand);
+  }
+  .line .tab:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+  
+  .test{
+    background-color: #2e6cca;
+  }
+
+  .vert {
+    display: flex;
+    align-items: flex-start;
+    height: 600px;
+    background: rgb(86, 169, 172);
+    border-radius: 16px;
+    gap: 20px;
+  }
+  
+  .vert .frameHeader{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 20px; /* 按钮之间间距 */
+    width: 250px; /* 侧边栏宽度，按需调整 */
+    height: 100%;
+    padding: 10px;
+    border-radius: 16px;
+    background-color: cornflowerblue;
+  }
+  
+  .vert .tab {
+    padding: 8px 18px;
+    border: none;
+    background: rgb(204, 235, 255);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #646a73;
+    cursor: pointer;
+    transition: background .2s, color .2s, box-shadow .2s;
+  }
+  
+  .vert .tab:hover { color: #1f2329; }
+  .vert .tab.is-active {
+    background: #6329B6;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+  .vert .tab:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  .vert .subTab {
+    margin-top: 0px;
+    padding-top: 0px;
+    background: rgb(194, 201, 132);
+    height: 100%;
+    padding: 10px;
+    border-radius: 16px;
+  }
+  .vert .subTab h3{
+    color:white;
+  }
+
+</style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h2>风格 A：分段控件（适合 2~4 个 Tab，紧凑）</h2>
+    <section class="demo seg">
+      <div class="frameHeader" data-tabs>
+        <button class="tab is-active" data-tab="0">主页</button>
+        <button class="tab" data-tab="1">我的配置</button>
+        <button class="tab" data-tab="2">帮助</button>
+        <button class="tab" data-tab="3">扩展</button>
+        <button class="tab" data-tab="4" style="margin-left: auto;">生活</button>
+        <!-- <button class="tab" data-tab="4" style="margin-left: auto;">尺寸2</button> -->
+      </div>
+
+      <div class="subTab is-active" data-panel="0">
+        <h3>主页</h3>
+        <p>这是主页面板，切换后带淡入动画。</p>
+        <div class="card">
+          <div class="row"><span>当前方案</span><span>事件委托 + data 属性</span></div>
+          <div class="row"><span>onclick 数量</span><span>0</span></div>
+          <div class="row"><span>新增 Tab 需改 JS</span><span>否</span></div>
+        </div>
+        <div class="tip">提示：按钮上没有 onclick，全部靠父容器委托处理。</div>
+      </div>
+
+      <div class="subTab" data-panel="1">
+        <h3>我的配置：默认配置</h3>
+        <p>配置面板内容，可以是表单或列表。</p>
+        <div class="card">
+          <div class="row"><span>配置名称</span><span>默认配置</span></div>
+          <div class="row"><span>语言</span><span>简体中文</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>快乐</span><span>白色</span><span>黄色</span></div>
+        </div>
+      </div>
+
+      <div class="subTab" data-panel="2">
+        <h3>帮助</h3>
+        <div class="card">新增一个 Tab，只需要复制一行 button，JS 完全不用改。</div>
+      </div>
+      <div class="subTab" data-panel="3">
+        <h3>人生</h3>
+        <p>人生的快乐是可以配置的吗？</p>
+        <div class="card" style="margin-left: auto; text-align: right;">真的可以啊！</div>
+      </div>
+      
+      <div class="subTab" data-panel="4">
+        <h3>生活</h3>
+        <p>提高生活质量</p>
+        <div class="card" style="margin-left: auto; text-align: right;">生活真的可以美好啊！</div>
+      </div>
+      <div style="height: 300px; background-color: lightgray; overflow-y: scroll;display: block;">
+          <h1>滚动测试</h1>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+          <p>这里是一些内容，测试滚动条是否正常工作。</p>
+      </div>
+    </section>
+
+    <h2>风格 B：下划线指示条（适合 Tab 较多，传统导航感）</h2>
+    <section class="demo line">
+      <div class="frameHeader" data-tabs>
+        <button class="tab is-active" data-tab="0">主页</button>
+        <button class="tab" data-tab="1">我的配置：默认配置</button>
+        <button class="tab" data-tab="2">帮助</button>
+      </div>
+
+      <div class="subTab is-active" data-panel="0">
+        <h3>主页</h3>
+        <p>激活态用 2px 下划线 + 主题色文字，hover 时文字加深。</p>
+        <div class="card">
+          <div class="row"><span>margin-bottom</span><span>-1px（盖住容器边框）</span></div>
+          <div class="row"><span>激活指示</span><span>border-bottom-color</span></div>
+        </div>
+      </div>
+
+      <div class="subTab" data-panel="1">
+        <h3>我的配置：默认配置</h3>
+        <div class="card">
+          <div class="row"><span>配置名称</span><span>默认配置</span></div>
+          <div class="row"><span>语言</span><span>简体中文</span></div>
+        </div>
+      </div>
+
+      <div class="subTab" data-panel="2">
+        <h3>帮助</h3>
+        <div class="card">键盘 Tab 聚焦时有 focus-visible 描边，无障碍友好。</div>
+      </div>
+    </section>
+
+    
+      <h2>风格 C：这是我自己玩的，发现DIV可以集成多种样式在一起 </h2>
+      <section class="demo vert">
+      <div class="frameHeader" data-tabs>
+        <button class="tab is-active" data-tab="0">主页</button>
+        <button class="tab" data-tab="1">配置</button>
+        <button class="tab" data-tab="2">帮助</button>
+        <button class="tab" data-tab="3">扩展</button>
+      </div>
+
+      <div class="subTab is-active" data-panel="0">
+        <h3>主页</h3>
+        <p>这是主页面板，切换后带淡入动画。</p>
+        <div class="card test">
+          <div class="row"><span>当前方案</span><span>事件委托 + data 属性</span></div>
+          <div class="row"><span>onclick 数量</span><span>0</span></div>
+          <div class="row"><span>新增 Tab 需改 JS</span><span>否</span></div>
+        </div>
+        <div class="tip">提示：按钮上没有 onclick，全部靠父容器委托处理。</div>
+      </div>
+
+      <div class="subTab" data-panel="1">
+        <h3>我的配置：默认配置</h3>
+        <p>配置面板内容，可以是表单或列表。</p>
+        <div class="card test" style="overflow-y: auto; flex:1;height: 420px;">
+          <div class="row"><span>配置名称</span><span>默认配置</span></div>
+          <div class="row"><span>语言</span><span>简体中文</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>快乐</span><span>白色</span><span>黄色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+          <div class="row"><span>主题</span><span>浅色</span></div>
+        </div>
+      </div>
+
+      <div class="subTab" data-panel="2">
+        <h3>帮助</h3>
+        <div class="card test">新增一个 Tab，只需要复制一行 button，JS 完全不用改。</div>
+      </div>
+
+      <div class="subTab" data-panel="3">
+        <h3>快乐</h3>
+        <p>人生的快乐是可以配置的吗？</p>
+        <div class="card  test">真的可以啊！</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    /**
+     * 通用 Tab 切换：事件委托
+     * 任何 .frameHeader[data-tabs] 容器都自动生效
+     * 新增 Tab 只需加一行 <button class="tab" data-tab="N">
+     */
+    document.querySelectorAll('.frameHeader[data-tabs]').forEach(bar => {
+      bar.addEventListener('click', e => {
+        const btn = e.target.closest('.tab');
+        if (!btn) return;
+
+        // 切换按钮高亮
+        bar.querySelectorAll('.tab').forEach(b => {
+          b.classList.toggle('is-active', b === btn);
+        });
+
+        // 切换面板：只显示与按钮 data-tab 匹配的那个
+        bar.parentElement.querySelectorAll('.subTab').forEach(panel => {
+          panel.classList.toggle('is-active', panel.dataset.panel === btn.dataset.tab);
+        });
+      });
+
+      bar.addEventListener('mouseenter', e => {
+        bar.style.backgroundColor = '#f0f0f0';
+        const btn = e.target.closest('.tab');
+        if (!btn) return;
+        btn.style.backgroundColor = '#c0e0b0';
+      });
+
+      bar.addEventListener('mouseleave', e => {
+        bar.style.backgroundColor = '';
+      });
+
+    });
+  </script>
+
+</body>
+</html>

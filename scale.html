@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- 视口，移动端自适应必须加 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>流式自适应</title>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing: border-box; /* 非常关键：padding不会撑大盒子 */
+}
+body{
+  padding:20px;
+  font-size:1rem;
+}
+.container{
+  width:100%;
+  max-width:100vw;
+  margin:0 auto;
+}
+/* 图片自适应 */
+img{
+  max-width:100%;
+  height:auto;
+  display:block;
+}
+/* 控件自适应 */
+input,button{
+  width:100%;
+  
+  padding:8px;
+  font-size:1rem;
+}
+.box-row{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap; /* 空间不够自动换行 */
+  margin:20px 0;
+}
+.box{
+  flex:1;
+  min-width:200px;
+  border:1px solid #ccc;
+  padding:16px;
+font-size: clamp(10px, 2vw, 64px);
+}
+h2 {
+  font-size: 4vw;
+}
+p {
+  font-size: 2vw;
+}
+p {
+  font-size: clamp(10px, 2vw, 32px);
+}
+
+button {
+  font-size: clamp(10px, 2vw, 32px);
+}
+input {
+  font-size: clamp(10px, 2vw, 32px);
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>测试标题</h2>
+  <p>一段测试文字：浏览器拉大，内容变宽；浏览器缩小，文字自动换行，图片和控件跟着缩小。</p>
+  <img src="https://picsum.photos/800/400" alt="测试图">
+  <div class="box-row">
+    <div class="box">区块A</div>
+    <div class="box">区块B</div>
+    <div class="box">区块C</div>
+  </div>
+  <input type="text" placeholder="输入框">
+  <br><br>
+  <button>按钮控件</button>
+</div>
+</body>
+</html>

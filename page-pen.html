@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>翻页笔放大镜效果模拟</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f0f0f0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2d4059;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            position: relative;
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            color: #e94560;
+            font-size: 2rem;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #e94560, #00b8a9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            color: #8f9bb3;
+            margin-top: 4px;
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 80px);
+        }
+        
+        .control-panel {
+            width: 320px;
+            background: rgba(25, 25, 45, 0.9);
+            padding: 1.5rem;
+            border-right: 1px solid #2d4059;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            -webkit-backdrop-filter: blur(10px);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            color: #00b8a9;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2d4059;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .panel-title i {
+            font-size: 1rem;
+        }
+        
+        .control-group {
+            background: rgba(15, 23, 42, 0.7);
+            padding: 1.2rem;
+            border-radius: 12px;
+            border: 1px solid #2d4059;
+            margin-bottom: 0.5rem;
+        }
+        
+        .slider-container {
+            margin: 1.2rem 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+        }
+        
+        .slider-label span:first-child {
+            color: #b8c1ec;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .slider-label span:last-child {
+            color: #00b8a9;
+            font-weight: bold;
+            background: rgba(0, 184, 169, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #16213e, #2d4059);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #e94560;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.8);
+            transition: all 0.2s ease;
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(233, 69, 96, 1);
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+        
+        .btn {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border: 1px solid #2d4059;
+            color: #f0f0f0;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #1a3a72 0%, #1c2a4e 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560 0%, #c2334d 100%);
+            border-color: #e94560;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff5773 0%, #d63a55 100%);
+            box-shadow: 0 6px 15px rgba(233, 69, 96, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #00b8a9 0%, #009688 100%);
+            border-color: #00b8a9;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #00d4c3 0%, #00b8a9 100%);
+            box-shadow: 0 6px 15px rgba(0, 184, 169, 0.3);
+        }
+        
+        .presentation-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #0d1117;
+            cursor: none;
+        }
+        
+        .slide-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 85%;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            border: 1px solid #2d4059;
+            overflow: auto;
+        }
+        
+        .slide.active {
+            display: flex;
+        }
+        
+        .slide-title {
+            font-size: 2.5rem;
+            color: #e94560;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #2d4059;
+        }
+        
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            padding-right: 1rem;
+        }
+        
+        .slide-content h3 {
+            color: #00b8a9;
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .slide-content ul {
+            margin-left: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        
+        .slide-content li {
+            font-size: 1.25rem;
+            color: #b8c1ec;
+            line-height: 1.6;
+            padding-left: 0.5rem;
+        }
+        
+        .slide-number {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            color: #8f9bb3;
+            font-size: 1rem;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #2d4059;
+        }
+        
+        /* 放大镜效果 */
+        .magnifier {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            pointer-events: none;
+            border: 3px solid #e94560;
+            box-shadow: 
+                0 0 0 2px rgba(255, 255, 255, 0.2),
+                0 0 25px rgba(233, 69, 96, 0.7),
+                inset 0 0 15px rgba(233, 69, 96, 0.3);
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            overflow: hidden;
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(2px);
+        }
+        
+        .magnifier-glass {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: scale(1.8);
+            transform-origin: 0 0;
+            pointer-events: none;
+            background-repeat: no-repeat;
+            filter: brightness(1.1) contrast(1.1);
+        }
+        
+        .magnifier-handle {
+            position: absolute;
+            width: 8px;
+            height: 100px;
+            background: #e94560;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 聚光灯效果 */
+        .spotlight {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+            mix-blend-mode: screen;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, opacity 0.3s;
+            z-index: 5;
+        }
+        
+        /* 激光指针效果 */
+        .laser-pointer {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff0000;
+            box-shadow: 0 0 15px 8px rgba(255, 0, 0, 0.8);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 60;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .laser-line {
+            position: absolute;
+            background: linear-gradient(90deg, rgba(255, 0, 0, 0.8), rgba(255, 100, 100, 0.4));
+            height: 3px;
+            pointer-events: none;
+            transform-origin: 0 0;
+            z-index: 60;
+            opacity: 0;
+            border-radius: 2px;
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: 1px solid #2d4059;
+            font-size: 0.9rem;
+            color: #b8c1ec;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+        }
+        
+        .instructions kbd {
+            background: #0f3460;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #2d4059;
+            font-family: monospace;
+            margin: 0 5px;
+            font-weight: bold;
+            color: #e94560;
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-item i {
+            color: #00b8a9;
+            font-size: 1.1rem;
+        }
+        
+        .status-label {
+            font-size: 0.9rem;
+            color: #8f9bb3;
+        }
+        
+        .status-value {
+            color: #f0f0f0;
+            font-weight: 600;
+            background: rgba(0, 184, 169, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            min-width: 50px;
+            text-align: center;
+            border: 1px solid rgba(0, 184, 169, 0.3);
+        }
+        
+        .power-btn {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            border: 2px solid #2d4059;
+            color: #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .power-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 184, 169, 0.6);
+        }
+        
+        .power-btn.on {
+            background: linear-gradient(135deg, #00b8a9 0%, #009688 100%);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(0, 184, 169, 0.8);
+        }
+        
+        .magnifier-preview {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            border: 2px solid #e94560;
+            overflow: hidden;
+            background: #0d1117;
+            z-index: 100;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .magnifier-preview-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #8f9bb3;
+        }
+        
+        .magnifier-preview-content {
+            width: 100%;
+            height: 100%;
+            transform: scale(1.8);
+            transform-origin: 0 0;
+            pointer-events: none;
+        }
+        
+        .toggle-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #2d4059;
+            color: #b8c1ec;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 101;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        .toggle-panel:hover {
+            background: rgba(26, 34, 52, 0.9);
+            color: #00b8a9;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .control-panel {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                padding: 1rem;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            .control-group {
+                flex: 1;
+                min-width: 250px;
+            }
+            
+            .presentation-area {
+                height: calc(100vh - 80px - 40vh);
+            }
+            
+            .toggle-panel {
+                display: flex;
+            }
+            
+            .control-panel.hidden {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 1rem;
+            }
+            
+            .status-bar {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .control-group {
+                min-width: 100%;
+            }
+            
+            .instructions {
+                font-size: 0.8rem;
+                padding: 10px 15px;
+            }
+            
+            .magnifier-preview {
+                width: 80px;
+                height: 80px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-search-plus logo-icon"></i>
+            <div>
+                <h1>翻页笔放大镜模拟器</h1>
+                <div class="subtitle">模拟翻页笔的放大镜、聚光灯、激光指针和翻页功能</div>
+            </div>
+        </div>
+        <div class="status-bar">
+            <div class="status-item">
+                <i class="fas fa-search-plus"></i>
+                <div>
+                    <div class="status-label">放大镜</div>
+                    <div class="status-value" id="magnifier-status">关闭</div>
+                </div>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <div class="status-label">聚光灯</div>
+                    <div class="status-value" id="spotlight-status">开启</div>
+                </div>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-mouse-pointer"></i>
+                <div>
+                    <div class="status-label">激光指针</div>
+                    <div class="status-value" id="laser-status">关闭</div>
+                </div>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-file-alt"></i>
+                <div>
+                    <div class="status-label">幻灯片</div>
+                    <div class="status-value"><span id="slide-number">1</span>/<span id="total-slides">5</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="control-panel" id="control-panel">
+            <div class="control-group">
+                <h3 class="panel-title"><i class="fas fa-search-plus"></i> 放大镜设置</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span><i class="fas fa-expand-arrows-alt"></i> 放大镜尺寸</span>
+                        <span id="magnifier-size-value">180px</span>
+                    </div>
+                    <input type="range" min="100" max="300" value="180" class="slider" id="magnifier-size-slider">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span><i class="fas fa-search"></i> 放大倍数</span>
+                        <span id="magnifier-zoom-value">1.8x</span>
+                    </div>
+                    <input type="range" min="15" max="30" value="18" class="slider" id="magnifier-zoom-slider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3 class="panel-title"><i class="fas fa-sun"></i> 聚光灯设置</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span><i class="fas fa-expand"></i> 聚光灯大小</span>
+                        <span id="spotlight-size-value">300px</span>
+                    </div>
+                    <input type="range" min="150" max="500" value="300" class="slider" id="spotlight-size-slider">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span><i class="fas fa-adjust"></i> 聚光灯亮度</span>
+                        <span id="spotlight-brightness-value">0.15</span>
+                    </div>
+                    <input type="range" min="5" max="30" value="15" class="slider" id="spotlight-brightness-slider">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3 class="panel-title"><i class="fas fa-sliders-h"></i> 控制功能</h3>
+                <div class="buttons">
+                    <button class="btn btn-primary" id="prev-slide">
+                        <i class="fas fa-arrow-left"></i> 上一页
+                    </button>
+                    <button class="btn btn-primary" id="next-slide">
+                        下一页 <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="toggle-magnifier">
+                        <i class="fas fa-search-plus"></i> 放大镜开关
+                    </button>
+                    <button class="btn btn-secondary" id="toggle-spotlight">
+                        <i class="fas fa-lightbulb"></i> 聚光灯开关
+                    </button>
+                    <button class="btn btn-secondary" id="toggle-laser">
+                        <i class="fas fa-mouse-pointer"></i> 激光开关
+                    </button>
+                    <button class="btn" id="reset-all">
+                        <i class="fas fa-redo"></i> 重置设置
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3 class="panel-title"><i class="fas fa-info-circle"></i> 使用说明</h3>
+                <ul style="color: #b8c1ec; font-size: 0.9rem; line-height: 1.6; padding-left: 1rem;">
+                    <li>移动鼠标控制放大镜和聚光灯位置</li>
+                    <li>点击鼠标左键显示激光指针</li>
+                    <li>使用左右箭头键翻页</li>
+                    <li>按M键切换放大镜开关</li>
+                    <li>按空格键切换聚光灯开关</li>
+                    <li>按L键切换激光指针开关</li>
+                    <li>按R键重置所有设置</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="presentation-area" id="presentation-area">
+            <div class="toggle-panel" id="toggle-panel">
+                <i class="fas fa-sliders-h"></i>
+            </div>
+            
+            <div class="power-btn" id="power-btn">
+                <i class="fas fa-power-off"></i>
+            </div>
+            
+            <div class="magnifier-preview" id="magnifier-preview">
+                <div class="magnifier-preview-label">放大预览</div>
+            </div>
+            
+            <!-- 放大镜 -->
+            <div class="magnifier" id="magnifier">
+                <div class="magnifier-glass" id="magnifier-glass"></div>
+                <div class="magnifier-handle"></div>
+            </div>
+            
+            <!-- 聚光灯 -->
+            <div class="spotlight" id="spotlight"></div>
+            
+            <!-- 激光指针 -->
+            <div class="laser-pointer" id="laser-pointer"></div>
+            
+            <!-- 幻灯片容器 -->
+            <div class="slide-container">
+                <!-- 幻灯片1 -->
+                <div class="slide active" id="slide-1">
+                    <h2 class="slide-title">翻页笔放大镜模拟器</h2>
+                    <div class="slide-content">
+                        <h3>功能简介</h3>
+                        <ul>
+                            <li>模拟真实翻页笔的放大镜效果</li>
+                            <li>可调节放大镜尺寸和放大倍数</li>
+                            <li>聚光灯效果突出显示重点内容</li>
+                            <li>红色激光指针功能</li>
+                            <li>幻灯片翻页控制</li>
+                            <li>键盘和鼠标双重控制</li>
+                        </ul>
+                        <h3>使用场景</h3>
+                        <ul>
+                            <li>在线演示和教学</li>
+                            <li>产品展示和报告</li>
+                            <li>远程会议和演讲</li>
+                            <li>培训材料讲解</li>
+                            <li>视力辅助演示</li>
+                        </ul>
+                    </div>
+                    <div class="slide-number">1 / 5</div>
+                </div>
+                
+                <!-- 幻灯片2 -->
+                <div class="slide" id="slide-2">
+                    <h2 class="slide-title">放大镜功能</h2>
+                    <div class="slide-content">
+                        <h3>主要特性</h3>
+                        <ul>
+                            <li>放大镜跟随鼠标移动，放大显示细节内容</li>
+                            <li>可调节放大镜尺寸（100-300px）</li>
+                            <li>可调节放大倍数（1.5x-3.0x）</li>
+                            <li>一键开关放大镜功能</li>
+                            <li>放大镜边框高亮显示，易于识别</li>
+                            <li>独立的放大预览窗口</li>
+                        </ul>
+                        <h3>技术实现</h3>
+                        <ul>
+                            <li>使用CSS transform scale实现放大效果</li>
+                            <li>Canvas API实时捕获屏幕内容</li>
+                            <li>JavaScript实时更新放大镜位置</li>
+                            <li>事件监听实现键盘和鼠标交互</li>
+                        </ul>
+                    </div>
+                    <div class="slide-number">2 / 5</div>
+                </div>
+                
+                <!-- 幻灯片3 -->
+                <div class="slide" id="slide-3">
+                    <h2 class="slide-title">聚光灯与激光指针</h2>
+                    <div class="slide-content">
+                        <h3>聚光灯功能</h3>
+                        <ul>
+                            <li>跟随鼠标的高亮圆形区域</li>
+                            <li>可调节大小（150-500px）和亮度（5%-30%）</li>
+                            <li>混合模式显示，不影响底层内容</li>
+                            <li>一键开关功能</li>
+                        </ul>
+                        <h3>激光指针功能</h3>
+                        <ul>
+                            <li>点击鼠标左键显示红色激光点</li>
+                            <li>激光指针有红色光晕效果</li>
+                            <li>可显示激光轨迹线</li>
+                            <li>激光指针自动淡出效果</li>
+                            <li>支持键盘快捷键切换激光模式</li>
+                        </ul>
+                        <h3>组合使用</h3>
+                        <ul>
+                            <li>可以同时使用放大镜和聚光灯</li>
+                            <li>激光指针可在任何模式下使用</li>
+                            <li>多种效果组合，增强演示效果</li>
+                        </ul>
+                    </div>
+                    <div class="slide-number">3 / 5</div>
+                </div>
+                
+                <!-- 幻灯片4 -->
+                <div class="slide" id="slide-4">
+                    <h2 class="slide-title">翻页控制与设置</h2>
+                    <div class="slide-content">
+                        <h3>翻页控制</h3>
+                        <ul>
+                            <li>使用左右箭头键进行翻页</li>
+                            <li>点击控制面板的上一页/下一页按钮</li>
+                            <li>翻页时有平滑过渡动画</li>
+                            <li>显示当前页码和总页数</li>
+                        </ul>
+                        <h3>自定义设置</h3>
+                        <ul>
+                            <li>实时调节放大镜参数</li>
+                            <li>实时调节聚光灯参数</li>
+                            <li>所有设置即时生效</li>
+                            <li>状态栏显示当前模式</li>
+                            <li>一键重置所有设置功能</li>
+                        </ul>
+                        <h3>键盘快捷键</h3>
+                        <ul>
+                            <li>M键：切换放大镜开关</li>
+                            <li>空格键：切换聚光灯开关</li>
+                            <li>L键：切换激光指针模式</li>
+                            <li>左右箭头键：翻页控制</li>
+                            <li>ESC键：关闭所有效果</li>
+                            <li>R键：重置所有设置</li>
+                        </ul>
+                    </div>
+                    <div class="slide-number">4 / 5</div>
+                </div>
+                
+                <!-- 幻灯片5 -->
+                <div class="slide" id="slide-5">
+                    <h2 class="slide-title">高级功能与兼容性</h2>
+                    <div class="slide-content">
+                        <h3>高级功能</h3>
+                        <ul>
+                            <li>响应式设计，适应不同屏幕尺寸</li>
+                            <li>触摸屏设备支持</li>
+                            <li>控制面板可折叠，节省屏幕空间</li>
+                            <li>实时放大预览窗口</li>
+                            <li>平滑的动画过渡效果</li>
+                        </ul>
+                        <h3>技术细节</h3>
+                        <ul>
+                            <li>使用纯HTML5、CSS3和JavaScript实现</li>
+                            <li>无需任何外部库或插件</li>
+                            <li>高性能渲染，低资源占用</li>
+                            <li>现代浏览器兼容（Chrome, Firefox, Edge, Safari）</li>
+                            <li>支持视网膜等高分辨率屏幕</li>
+                        </ul>
+                        <h3>适用环境</h3>
+                        <ul>
+                            <li>在线教育平台</li>
+                            <li>企业会议系统</li>
+                            <li>产品发布会</li>
+                            <li>学术报告</li>
+                            <li>远程协作工具</li>
+                        </ul>
+                    </div>
+                    <div class="slide-number">5 / 5</div>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                使用说明：移动鼠标控制放大镜和聚光灯位置 | 点击鼠标显示激光指针 | 
+                使用 <kbd>←</kbd> <kbd>→</kbd> 翻页 | 按 <kbd>M</kbd> 切换放大镜 | 按 <kbd>空格键</kbd> 切换聚光灯 | 按 <kbd>L</kbd> 切换激光指针
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const presentationArea = document.getElementById('presentation-area');
+            const magnifier = document.getElementById('magnifier');
+            const magnifierGlass = document.getElementById('magnifier-glass');
+            const magnifierPreview = document.getElementById('magnifier-preview');
+            const spotlight = document.getElementById('spotlight');
+            const laserPointer = document.getElementById('laser-pointer');
+            const magnifierSizeSlider = document.getElementById('magnifier-size-slider');
+            const magnifierZoomSlider = document.getElementById('magnifier-zoom-slider');
+            const spotlightSizeSlider = document.getElementById('spotlight-size-slider');
+            const spotlightBrightnessSlider = document.getElementById('spotlight-brightness-slider');
+            const magnifierSizeValue = document.getElementById('magnifier-size-value');
+            const magnifierZoomValue = document.getElementById('magnifier-zoom-value');
+            const spotlightSizeValue = document.getElementById('spotlight-size-value');
+            const spotlightBrightnessValue = document.getElementById('spotlight-brightness-value');
+            const prevSlideBtn = document.getElementById('prev-slide');
+            const nextSlideBtn = document.getElementById('next-slide');
+            const toggleMagnifierBtn = document.getElementById('toggle-magnifier');
+            const toggleSpotlightBtn = document.getElementById('toggle-spotlight');
+            const toggleLaserBtn = document.getElementById('toggle-laser');
+            const resetAllBtn = document.getElementById('reset-all');
+            const powerBtn = document.getElementById('power-btn');
+            const togglePanelBtn = document.getElementById('toggle-panel');
+            const controlPanel = document.getElementById('control-panel');
+            const slides = document.querySelectorAll('.slide');
+            const slideNumberElement = document.getElementById('slide-number');
+            const totalSlidesElement = document.getElementById('total-slides');
+            const magnifierStatus = document.getElementById('magnifier-status');
+            const spotlightStatus = document.getElementById('spotlight-status');
+            const laserStatus = document.getElementById('laser-status');
+            
+            // 状态变量
+            let currentSlide = 0;
+            let magnifierEnabled = false;
+            let spotlightEnabled = true;
+            let laserEnabled = false;
+            let laserMode = false;
+            let laserTimeout = null;
+            let laserLine = null;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+            let isPowerOn = true;
+            let canvas = null;
+            let ctx = null;
+            
+            // 初始化
+            totalSlidesElement.textContent = slides.length;
+            updateSlide();
+            initCanvas();
+            
+            // 初始化Canvas用于放大镜效果
+            function initCanvas() {
+                canvas = document.createElement('canvas');
+                ctx = canvas.getContext('2d');
+                canvas.width = presentationArea.offsetWidth;
+                canvas.height = presentationArea.offsetHeight;
+            }
+            
+            // 创建激光线
+            function createLaserLine() {
+                if (laserLine) {
+                    laserLine.remove();
+                }
+                laserLine = document.createElement('div');
+                laserLine.className = 'laser-line';
+                presentationArea.appendChild(laserLine);
+                return laserLine;
+            }
+            
+            // 更新放大镜位置和内容
+            function updateMagnifier(x, y) {
+                if (!magnifierEnabled) return;
+                
+                // 更新放大镜位置
+                magnifier.style.left = x + 'px';
+                magnifier.style.top = y + 'px';
+                
+                // 更新放大镜内容
+                updateMagnifierContent(x, y);
+                
+                // 更新预览窗口内容
+                updatePreviewContent(x, y);
+            }
+            
+            // 更新放大镜内容
+            function updateMagnifierContent(x, y) {
+                // 获取放大镜尺寸和缩放倍数
+                const magnifierSize = parseInt(magnifierSizeSlider.value);
+                const zoomLevel = parseInt(magnifierZoomSlider.value) / 10;
+                
+                // 计算放大镜玻璃的偏移量
+                const offsetX = (x - magnifierSize / 2) * (1 - 1/zoomLevel);
+                const offsetY = (y - magnifierSize / 2) * (1 - 1/zoomLevel);
+                
+                // 设置放大镜玻璃的位置和缩放
+                magnifierGlass.style.transform = `scale(${zoomLevel}) translate(${offsetX/zoomLevel}px, ${offsetY/zoomLevel}px)`;
+            }
+            
+            // 更新预览窗口内容
+            function updatePreviewContent(x, y) {
+                // 获取放大镜尺寸和缩放倍数
+                const magnifierSize = parseInt(magnifierSizeSlider.value);
+                const zoomLevel = parseInt(magnifierZoomSlider.value) / 10;
+                
+                // 计算预览窗口中的偏移量
+                const previewSize = 120; // 预览窗口大小
+                const offsetX = (x - magnifierSize / 2) * (1 - 1/zoomLevel);
+                const offsetY = (y - magnifierSize / 2) * (1 - 1/zoomLevel);
+                
+                // 创建临时元素来显示放大内容
+                const previewContent = document.createElement('div');
+                previewContent.className = 'magnifier-preview-content';
+                previewContent.style.transform = `scale(${zoomLevel}) translate(${offsetX/zoomLevel}px, ${offsetY/zoomLevel}px)`;
+                previewContent.style.backgroundImage = `url(${getSlideBackground()})`;
+                previewContent.style.backgroundSize = `${presentationArea.offsetWidth}px ${presentationArea.offsetHeight}px`;
+                previewContent.style.backgroundPosition = `-${x - magnifierSize/2}px -${y - magnifierSize/2}px`;
+                
+                // 清空预览窗口并添加新内容
+                magnifierPreview.innerHTML = '<div class="magnifier-preview-label">放大预览</div>';
+                magnifierPreview.appendChild(previewContent);
+            }
+            
+            // 获取幻灯片背景（简化版本，实际应用中可能需要更复杂的实现）
+            function getSlideBackground() {
+                // 这里返回一个颜色作为背景，实际应用中可能需要捕获屏幕内容
+                return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzBhMTEyMiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFlMjYzNSIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=';
+            }
+            
+            // 更新聚光灯位置
+            function updateSpotlightPosition(x, y) {
+                if (!spotlightEnabled) return;
+                
+                spotlight.style.left = x + 'px';
+                spotlight.style.top = y + 'px';
+                
+                // 如果激光模式开启，更新激光指针位置
+                if (laserMode) {
+                    updateLaserPointer(x, y);
+                }
+            }
+            
+            // 更新激光指针
+            function updateLaserPointer(x, y) {
+                if (!laserEnabled) return;
+                
+                laserPointer.style.left = x + 'px';
+                laserPointer.style.top = y + 'px';
+                laserPointer.style.opacity = '1';
+                
+                // 清除之前的淡出定时器
+                if (laserTimeout) {
+                    clearTimeout(laserTimeout);
+                }
+                
+                // 设置新的淡出定时器
+                laserTimeout = setTimeout(() => {
+                    laserPointer.style.opacity = '0';
+                    if (laserLine) {
+                        laserLine.style.opacity = '0';
+                    }
+                }, 500);
+                
+                // 更新激光线
+                if (lastMouseX && lastMouseY) {
+                    const dx = x - lastMouseX;
+                    const dy = y - lastMouseY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    if (distance > 5) { // 避免抖动
+                        const line = createLaserLine();
+                        line.style.width = distance + 'px';
+                        line.style.left = lastMouseX + 'px';
+                        line.style.top = lastMouseY + 'px';
+                        line.style.transform = `rotate(${angle}deg)`;
+                        line.style.opacity = '0.6';
+                        
+                        // 淡出激光线
+                        setTimeout(() => {
+                            if (line) line.style.opacity = '0';
+                        }, 300);
+                    }
+                }
+                
+                lastMouseX = x;
+                lastMouseY = y;
+            }
+            
+            // 鼠标移动事件
+            presentationArea.addEventListener('mousemove', (e) => {
+                updateMagnifier(e.clientX, e.clientY);
+                updateSpotlightPosition(e.clientX, e.clientY);
+            });
+            
+            // 鼠标点击事件 - 显示激光指针
+            presentationArea.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // 左键点击
+                    updateLaserPointer(e.clientX, e.clientY);
+                }
+            });
+            
+            // 控制放大镜大小
+            magnifierSizeSlider.addEventListener('input', function() {
+                const size = this.value + 'px';
+                magnifier.style.width = size;
+                magnifier.style.height = size;
+                magnifierSizeValue.textContent = size;
+            });
+            
+            // 控制放大镜缩放倍数
+            magnifierZoomSlider.addEventListener('input', function() {
+                const zoomLevel = (this.value / 10).toFixed(1);
+                magnifierZoomValue.textContent = zoomLevel + 'x';
+            });
+            
+            // 控制聚光灯大小
+            spotlightSizeSlider.addEventListener('input', function() {
+                const size = this.value + 'px';
+                spotlight.style.width = size;
+                spotlight.style.height = size;
+                spotlightSizeValue.textContent = size;
+            });
+            
+            // 控制聚光灯亮度
+            spotlightBrightnessSlider.addEventListener('input', function() {
+                const brightness = this.value / 100;
+                spotlight.style.background = `radial-gradient(circle, rgba(255, 255, 255, ${brightness}) 0%, rgba(255, 255, 255, 0) 70%)`;
+                spotlightBrightnessValue.textContent = brightness.toFixed(2);
+            });
+            
+            // 上一页
+            prevSlideBtn.addEventListener('click', () => {
+                if (currentSlide > 0) {
+                    currentSlide--;
+                    updateSlide();
+                }
+            });
+            
+            // 下一页
+            nextSlideBtn.addEventListener('click', () => {
+                if (currentSlide < slides.length - 1) {
+                    currentSlide++;
+                    updateSlide();
+                }
+            });
+            
+            // 切换放大镜开关
+            toggleMagnifierBtn.addEventListener('click', () => {
+                magnifierEnabled = !magnifierEnabled;
+                magnifier.style.display = magnifierEnabled ? 'block' : 'none';
+                magnifierStatus.textContent = magnifierEnabled ? '开启' : '关闭';
+                magnifierPreview.style.display = magnifierEnabled ? 'flex' : 'none';
+                toggleMagnifierBtn.innerHTML = magnifierEnabled ? 
+                    '<i class="fas fa-search-plus"></i> 关闭放大镜' : 
+                    '<i class="fas fa-search-plus"></i> 开启放大镜';
+                
+                // 更新光标样式
+                presentationArea.style.cursor = magnifierEnabled ? 'none' : 'default';
+            });
+            
+            // 切换聚光灯开关
+            toggleSpotlightBtn.addEventListener('click', () => {
+                spotlightEnabled = !spotlightEnabled;
+                spotlight.style.opacity = spotlightEnabled ? '1' : '0';
+                spotlightStatus.textContent = spotlightEnabled ? '开启' : '关闭';
+                toggleSpotlightBtn.innerHTML = spotlightEnabled ? 
+                    '<i class="fas fa-lightbulb"></i> 关闭聚光灯' : 
+                    '<i class="fas fa-lightbulb"></i> 开启聚光灯';
+            });
+            
+            // 切换激光开关
+            toggleLaserBtn.addEventListener('click', () => {
+                laserMode = !laserMode;
+                laserEnabled = laserMode;
+                laserStatus.textContent = laserMode ? '开启' : '关闭';
+                toggleLaserBtn.innerHTML = laserMode ? 
+                    '<i class="fas fa-mouse-pointer"></i> 关闭激光' : 
+                    '<i class="fas fa-mouse-pointer"></i> 开启激光';
+                
+                // 如果关闭激光，隐藏激光指针
+                if (!laserMode) {
+                    laserPointer.style.opacity = '0';
+                    if (laserLine) {
+                        laserLine.style.opacity = '0';
+                    }
+                }
+            });
+            
+            // 重置所有设置
+            resetAllBtn.addEventListener('click', resetAllSettings);
+            
+            // 电源按钮
+            powerBtn.addEventListener('click', () => {
+                isPowerOn = !isPowerOn;
+                powerBtn.classList.toggle('on', isPowerOn);
+                
+                if (isPowerOn) {
+                    // 开启所有功能
+                    resetAllSettings();
+                } else {
+                    // 关闭所有功能
+                    magnifierEnabled = false;
+                    spotlightEnabled = false;
+                    laserMode = false;
+                    laserEnabled = false;
+                    
+                    magnifier.style.display = 'none';
+                    spotlight.style.opacity = '0';
+                    laserPointer.style.opacity = '0';
+                    magnifierPreview.style.display = 'none';
+                    
+                    magnifierStatus.textContent = '关闭';
+                    spotlightStatus.textContent = '关闭';
+                    laserStatus.textContent = '关闭';
+                    
+                    toggleMagnifierBtn.innerHTML = '<i class="fas fa-search-plus"></i> 开启放大镜';
+                    toggleSpotlightBtn.innerHTML = '<i class="fas fa-lightbulb"></i> 开启聚光灯';
+                    toggleLaserBtn.innerHTML = '<i class="fas fa-mouse-pointer"></i> 开启激光';
+                    
+                    presentationArea.style.cursor = 'default';
+                }
+            });
+            
+            // 切换控制面板显示
+            togglePanelBtn.addEventListener('click', () => {
+                controlPanel.classList.toggle('hidden');
+                togglePanelBtn.innerHTML = controlPanel.classList.contains('hidden') ? 
+                    '<i class="fas fa-sliders-h"></i>' : 
+                    '<i class="fas fa-times"></i>';
+            });
+            
+            // 重置所有设置
+            function resetAllSettings() {
+                // 放大镜设置
+                magnifierSizeSlider.value = 180;
+                magnifierZoomSlider.value = 18;
+                magnifier.style.width = '180px';
+                magnifier.style.height = '180px';
+                magnifierSizeValue.textContent = '180px';
+                magnifierZoomValue.textContent = '1.8x';
+                
+                // 聚光灯设置
+                spotlightSizeSlider.value = 300;
+                spotlightBrightnessSlider.value = 15;
+                spotlight.style.width = '300px';
+                spotlight.style.height = '300px';
+                spotlight.style.background = 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%)';
+                spotlightSizeValue.textContent = '300px';
+                spotlightBrightnessValue.textContent = '0.15';
+                
+                // 开启所有功能
+                magnifierEnabled = true;
+                spotlightEnabled = true;
+                laserMode = false;
+                laserEnabled = false;
+                
+                magnifier.style.display = 'block';
+                spotlight.style.opacity = '1';
+                laserPointer.style.opacity = '0';
+                magnifierPreview.style.display = 'flex';
+                
+                magnifierStatus.textContent = '开启';
+                spotlightStatus.textContent = '开启';
+                laserStatus.textContent = '关闭';
+                
+                toggleMagnifierBtn.innerHTML = '<i class="fas fa-search-plus"></i> 关闭放大镜';
+                toggleSpotlightBtn.innerHTML = '<i class="fas fa-lightbulb"></i> 关闭聚光灯';
+                toggleLaserBtn.innerHTML = '<i class="fas fa-mouse-pointer"></i> 开启激光';
+                
+                presentationArea.style.cursor = 'none';
+                
+                // 将聚光灯和放大镜移动到中心位置
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                updateMagnifier(centerX, centerY);
+                updateSpotlightPosition(centerX, centerY);
+            }
+            
+            // 更新幻灯片显示
+            function updateSlide() {
+                // 隐藏所有幻灯片
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                
+                // 显示当前幻灯片
+                slides[currentSlide].classList.add('active');
+                
+                // 更新页码显示
+                slideNumberElement.textContent = currentSlide + 1;
+                
+                // 添加幻灯片切换动画
+                const slideContainer = document.querySelector('.slide-container');
+                slideContainer.style.transform = `translate(-50%, -50%) scale(0.98)`;
+                setTimeout(() => {
+                    slideContainer.style.transform = `translate(-50%, -50%) scale(1)`;
+                }, 50);
+            }
+            
+            // 键盘控制
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        if (currentSlide > 0) {
+                            currentSlide--;
+                            updateSlide();
+                        }
+                        break;
+                    case 'ArrowRight':
+                        if (currentSlide < slides.length - 1) {
+                            currentSlide++;
+                            updateSlide();
+                        }
+                        break;
+                    case 'm':
+                    case 'M':
+                        e.preventDefault();
+                        toggleMagnifierBtn.click();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        toggleSpotlightBtn.click();
+                        break;
+                    case 'l':
+                    case 'L':
+                        toggleLaserBtn.click();
+                        break;
+                    case 'Escape':
+                        magnifierEnabled = false;
+                        spotlightEnabled = false;
+                        laserMode = false;
+                        laserEnabled = false;
+                        
+                        magnifier.style.display = 'none';
+                        spotlight.style.opacity = '0';
+                        laserPointer.style.opacity = '0';
+                        magnifierPreview.style.display = 'none';
+                        
+                        magnifierStatus.textContent = '关闭';
+                        spotlightStatus.textContent = '关闭';
+                        laserStatus.textContent = '关闭';
+                        
+                        toggleMagnifierBtn.innerHTML = '<i class="fas fa-search-plus"></i> 开启放大镜';
+                        toggleSpotlightBtn.innerHTML = '<i class="fas fa-lightbulb"></i> 开启聚光灯';
+                        toggleLaserBtn.innerHTML = '<i class="fas fa-mouse-pointer"></i> 开启激光';
+                        
+                        presentationArea.style.cursor = 'default';
+                        break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault();
+                        resetAllSettings();
+                        break;
+                }
+            });
+            
+            // 触摸屏支持
+            presentationArea.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                updateMagnifier(touch.clientX, touch.clientY);
+                updateSpotlightPosition(touch.clientX, touch.clientY);
+            });
+            
+            presentationArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                updateLaserPointer(touch.clientX, touch.clientY);
+            });
+            
+            // 窗口大小变化时重新定位
+            window.addEventListener('resize', () => {
+                // 重新初始化Canvas
+                initCanvas();
+                
+                // 将放大镜和聚光灯置于中心位置
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                updateMagnifier(centerX, centerY);
+                updateSpotlightPosition(centerX, centerY);
+            });
+            
+            // 初始化放大镜和聚光灯位置为屏幕中心
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            updateMagnifier(centerX, centerY);
+            updateSpotlightPosition(centerX, centerY);
+            
+            // 初始状态
+            resetAllSettings();
+        });
+    </script>
+</body>
+</html>

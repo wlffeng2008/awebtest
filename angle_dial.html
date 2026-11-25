@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角度表盘 AngleDial</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+       background:#1e1e1e;color:#ccc;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;}
+  #dial{background:#2d2d30;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.5);cursor:pointer;touch-action:none;}
+  .bar{display:flex;gap:12px;align-items:center;font-size:13px;}
+  button{background:#3e3e42;color:#ddd;border:1px solid #555;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;}
+  button:hover{background:#4a4a50;}
+  #log{font-size:12px;color:#888;min-height:16px;}
+  .tip{font-size:12px;color:#666;}
+</style>
+</head>
+<body>
+
+<canvas id="dial"></canvas>
+
+<div class="bar">
+  <button id="pick">更换设备图…</button>
+  <input type="file" id="file" accept="image/*" hidden>
+  <span id="log"></span>
+</div>
+<div class="tip">拖动 / 点击圆弧调节，-30° ~ 30°，也支持 ← → 微调</div>
+
+<script>
+/* ============ 画布与 HiDPI ============ */
+const W = 560, H = 300;
+const cv  = document.getElementById('dial');
+const dpr = window.devicePixelRatio || 1;
+cv.width  = W * dpr;  cv.height = H * dpr;
+cv.style.width = W + 'px';  cv.style.height = H + 'px';
+const ctx = cv.getContext('2d');
+ctx.scale(dpr, dpr);
+
+/* ============ 状态（对应 Qt 成员 m_angle / m_hover / m_drag）============ */
+const MIN = -30, MAX = 30;
+let sensorAngle   = 0;      // 当前角度
+let hover   = null;   // 悬停刻度，null = 无（Qt 里的 -1000 哨兵值）
+let dragging = false;
+let devImg  = makeDeviceImage(256);   // 设备图，可用 setDeviceImage() 替换
+
+/* ============ 几何：半径同时受宽高约束，圆心压在底部 ============ */
+function metrics() {
+  const rOut = Math.min(W / 2 - 20, H - 40 - 20);  // 外半径
+  const rIn  = rOut - 24;                          // 内半径（刻度长度 24）
+  return { rOut, rIn, cx: W / 2, cy: H - 40 };
+}
+
+/* 值 <-> 数学角：v=-30 → 180°(左)，v=0 → 90°(正上)，v=30 → 0°(右) */
+const valueToDeg = v => 180 - (v - MIN) / (MAX - MIN) * 180;
+const degToValue = d => MIN + (180 - d) / 180 * (MAX - MIN);
+
+/* 极坐标转屏幕坐标（y 轴向上，与数学角一致）*/
+function polar(cx, cy, r, deg) {
+  const a = deg * Math.PI / 180;
+  return [cx + r * Math.cos(a), cy - r * Math.sin(a)];
+}
+
+/* 鼠标位置 → 角度值；圆心附近或弧外返回 null（避免抖动 / 误触）*/
+function valueAt(x, y) {
+  const { rOut, cx, cy } = metrics();
+  const dx = x - cx, dy = cy - y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 12)       return null;   // 太靠近圆心，角度无意义
+  if (dist > rOut + 24) return null;  // 弧外
+  let deg = Math.atan2(dy, dx) * 180 / Math.PI;   // (-180, 180]
+  if (deg < 0) deg = (deg >= -90) ? 0 : 180;      // 落在下方：就近吸附到两端
+  return Math.round(Math.min(MAX, Math.max(MIN, degToValue(deg))));
+}
+
+/* ============ 绘制 ============ */
+function drawSensorAngle() {
+  ctx.clearRect(0, 0, W, H);
+  const { rOut, rIn, cx, cy } = metrics();
+  ctx.lineCap = 'round';
+
+  /* 1) 61 条刻度，每格 1°，整 10° 为主刻度 */
+  for (let v = MIN; v <= MAX; v++) {
+    const major = (v % 10 === 0);
+    const d = valueToDeg(v);
+    const [x0, y0] = polar(cx, cy, rOut, d);
+    const [x1, y1] = polar(cx, cy, major ? rIn - 6 : rIn, d);
+    ctx.beginPath();
+    ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+    ctx.lineWidth   = major ? 5 : 4;
+    ctx.strokeStyle = (v === hover) ? '#C73737'           // 悬停/命中 → 红
+                    : major         ? '#4a4a4a'           // 主刻度
+                                    : '#373737';          // 次刻度
+    ctx.stroke();
+  }
+
+  /* 2) 指针：比刻度长，指向圆心方向 */
+  {
+    const d = valueToDeg(sensorAngle);
+    const [x0, y0] = polar(cx, cy, rOut, d);
+    const [x1, y1] = polar(cx, cy, rOut - 39, d);
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1);
+    ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
+  }
+
+  /* 3) 设备图：居中 + 绕自身中心旋转（值增大 = 顺时针，与指针同向）*/
+  {
+    const side = 0.65 * rOut;                       // 内切于刻度圈，旋转 45° 也不越界
+    const cxi  = cx, cyi = cy - side / 2 - 14;
+    const s    = Math.min(side / devImg.width, side / devImg.height);   // 等比适配
+    const w    = devImg.width * s, h = devImg.height * s;
+
+    ctx.save();
+    ctx.translate(cxi, cyi);
+    ctx.rotate(sensorAngle * Math.PI / 180);
+    ctx.drawImage(devImg, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+
+  /* 4) 数值 */
+  ctx.fillStyle    = '#fff';
+  ctx.font         = '600 24px system-ui,-apple-system,"Microsoft YaHei",sans-serif';
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(sensorAngle + '°', cx, cy + 32);
+}
+
+/* ============ 交互（Pointer Events 统一鼠标 / 触摸 / 触控笔）============ */
+const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+
+cv.addEventListener('pointerdown', e => {
+  dragging = true;
+  cv.setPointerCapture(e.pointerId);
+  const v = valueAt(...pos(e));
+  if (v !== null) sensorAngle = v;
+  drawSensorAngle();
+});
+cv.addEventListener('pointermove', e => {
+  const v = valueAt(...pos(e));
+  hover = v;
+  if (dragging && v !== null) sensorAngle = v;
+  drawSensorAngle();
+});
+cv.addEventListener('pointerup', e => {
+  if (dragging) { dragging = false; onRelease(sensorAngle); }   // 松手才下发，对应 setSensorAngle()
+  drawSensorAngle();
+});
+cv.addEventListener('pointercancel', () => { dragging = false; drawSensorAngle(); });
+cv.addEventListener('pointerleave',  () => { hover = null; drawSensorAngle(); });   // 对应 leaveEvent
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  sensorAngle = Math.min(MAX, Math.max(MIN, sensorAngle + (e.key === 'ArrowRight' ? 1 : -1)));
+  onRelease(sensorAngle);
+  drawSensorAngle();
+  e.preventDefault();
+});
+
+/* 松手回调：替换成你的实际下发逻辑 */
+function onRelease(a) {
+  document.getElementById('log').textContent = '已下发角度：' + a + '°';
+  //console.log('setSensorAngle(' + a + ')');
+}
+
+/* ============ 默认设备图（离屏生成，可替换） ============ */
+function makeDeviceImage(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  g.scale(size / 100, size / 100);
+
+  g.beginPath(); g.moveTo(32, 80); g.lineTo(68, 80); g.lineTo(76, 94); g.lineTo(24, 94); g.closePath();
+  g.fillStyle = '#45494f'; g.fill();                                  // 底座
+
+  roundRect(g, 20, 35, 60, 45, 8);
+  g.fillStyle = '#5a5f66'; g.fill();                                   // 机身
+
+  g.beginPath(); g.arc(50, 46, 11, 0, Math.PI * 2); g.fillStyle = '#9aa3ad'; g.fill();
+  g.beginPath(); g.arc(50, 46, 6,  0, Math.PI * 2); g.fillStyle = '#2b2f36'; g.fill();
+  g.beginPath(); g.arc(47, 43, 2,  0, Math.PI * 2); g.fillStyle = '#7fd4ff'; g.fill();   // 镜头
+
+  g.strokeStyle = '#ffd93d'; g.lineWidth = 3; g.lineCap = 'round';      // 顶部朝向箭头
+  g.beginPath(); g.moveTo(50, 8); g.lineTo(50, 26);
+  g.moveTo(43, 17); g.lineTo(50, 9); g.lineTo(57, 17); g.stroke();
+  return c;
+}
+function roundRect(g, x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y,     x + w, y + h, r);
+  g.arcTo(x + w, y + h, x,     y + h, r);
+  g.arcTo(x,     y + h, x,     y,     r);
+  g.arcTo(x,     y,     x + w, y,     r);
+  g.closePath();
+}
+
+/* 对外接口：换成真实设备图 */
+function setDeviceImage(src) {
+  const img = new Image();
+  img.onload = () => { devImg = img; drawSensorAngle(); };
+  img.src = src;
+}
+// setDeviceImage('device.png');   // ← 用你的图片路径即可
+
+document.getElementById('pick').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => {
+  const f = e.target.files[0];
+  if (f) setDeviceImage(URL.createObjectURL(f));
+};
+
+drawSensorAngle();
+</script>
+</body>
+</html>
